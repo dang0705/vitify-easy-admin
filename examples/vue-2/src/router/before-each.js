@@ -1,11 +1,15 @@
 import saveCurrentRoute from '@router/utils/save-current-route';
+import { useAdminRoutes } from '@store/dynamic-routes-store';
 
 let isAsyncRouteAdded = false; // 异步动态路由是否已加载标志，防止无限挂载
 let resetRouter = null;
 // 此处不允许使用箭头函数导出，否则this指向出错
 export default async function (to, from, next) {
+  console.log(to);
   const { name, meta: { menuName, isMinors } = {}, path } = to;
   const paths = path.split('/');
+
+  const $routesStore = useAdminRoutes();
   const $modelStore = saveCurrentRoute({
     currentMenuName: menuName,
     currentModel: paths[1],
