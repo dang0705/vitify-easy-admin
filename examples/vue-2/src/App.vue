@@ -6,10 +6,4 @@
   </v-app>
 </template>
 
-<script setup>
-  const {
-    $vuetify: {
-      breakpoint: { mobile, name }
-    }
-  } = getCurrentInstance().proxy;
-</script>
+<script setup></script>

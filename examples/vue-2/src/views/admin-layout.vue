@@ -15,38 +15,4 @@
 
   const { currentMenuName, options } = storeToRefs(useModelStore());
   const { routes } = storeToRefs(useAdminRoutes());
-
-  let dialogActions = ref({});
-  const showDialog = ref(null);
-
-  const noticeModel = 'message';
-  const notice = async () => {
-    showDialog.value = true;
-    const key = 'classesId';
-
-    dialogActions.value = {
-      title: '发送通知',
-      ele: [
-        {
-          type: 'select',
-          key,
-          label: '选择课群',
-          required: true,
-          options: statusOptions(options.value[noticeModel][key], false)
-        },
-        {
-          type: 'text',
-          key: 'title',
-          label: '标题',
-          required: true
-        },
-        {
-          type: 'textarea',
-          key: 'content',
-          label: '内容',
-          required: true
-        }
-      ]
-    };
-  };
 </script>
