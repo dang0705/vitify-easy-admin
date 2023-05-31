@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 import Vuetify from '@configs/vuetify';
-import router from '@vue-2-router';
+import { router } from '@vue-2-router';
 import pinia from '@store';
 
 const vuetify = Vuetify({
