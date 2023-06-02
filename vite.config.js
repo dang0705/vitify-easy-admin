@@ -1,33 +1,38 @@
 import { defineConfig } from 'vite';
-import commonjs from 'vite-plugin-commonjs';
 import resolve from './vite.config/alias';
-import $appName from './vite.config/app-name';
-import deepmerge from 'deepmerge';
+import plugins from './vite.config/plugins';
+import postcss from './vite.config/postcss';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const _isDev_ = mode === 'development';
-  try {
-    var configs = require(`./vite.config/apps/${$appName}/index.js`);
-  } catch (e) {}
-  const basicConfigs = {
+  return {
+    css: {
+      postcss,
+      devSourcemap: true,
+      preprocessorOptions: {
+        sass: {
+          //
+          additionalData: [
+            '@import "vuetify/src/styles/settings/index"',
+            '@import "styles/vuetify/variables"',
+            ''
+          ].join('\n'),
+          charset: false
+        }
+      }
+    },
     define: {
-      _isDev_,
-      _appName_: `"${$appName}"`
+      _isDev_
     },
     ...resolve,
     server: {
-      host: 'localhost'
+      host: 'localhost',
+      port: 8899
     },
     preview: {
       port: 9988
     },
-    plugins: [commonjs()]
+    plugins
   };
-  const totalConfigs = deepmerge(
-    basicConfigs,
-    configs ? configs($appName, _isDev_) : {}
-  );
-  // console.log(totalConfigs);
-  return totalConfigs;
 });

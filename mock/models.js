@@ -3,23 +3,23 @@ export default [
     actions: {},
     children: [],
     includes: ['list'],
-    model: 'classes',
-    name: '任课课程',
+    model: 'module-a',
+    name: 'MODULE_A',
     options: {}
   },
   {
     actions: {},
     children: [],
     includes: ['list'],
-    model: 'electives',
-    name: '选修课程',
+    model: 'module-b',
+    name: 'MODULE_B',
     options: {}
   },
   {
     children: [],
     includes: ['list', 'create'],
-    model: 'message',
-    name: '历史通知',
+    model: 'module-c',
+    name: 'MODULE_C',
     options: { 196351: '上海开放大学数字马院' }
   }
 ];
