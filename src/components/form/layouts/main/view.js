@@ -1,6 +1,6 @@
-import { helpers } from '@utils/helpers';
+import { helpers } from 'utils/helpers';
 import { mapState } from 'pinia';
-import { useModuleStore } from '@store/modules-store';
+import { useModuleStore } from 'store/modules-store';
 // import { useAlertInfo } from '@balm-async';
 // import { mapState } from 'pinia';
 // import { useModuleStore } from '@store/modules-store';
@@ -15,7 +15,7 @@ export default {
       type: String,
       default: ''
     },
-    model: {
+    module: {
       type: String,
       default: undefined
     },
@@ -55,7 +55,7 @@ export default {
       return !!this.validations.length;
     },
     modelName() {
-      return this.model || this.currentModule;
+      return this.module || this.currentModule;
     }
   },
   watch: {

@@ -1,5 +1,5 @@
-import { helpers } from '@utils/helpers';
-import { getOptionsModelConfig } from '@admin-utils/model-CRUD';
+import { helpers } from 'utils/helpers';
+// import { getOptionsModelConfig } from 'module-utils/CRUD';
 
 export default {
   data() {
@@ -33,7 +33,7 @@ export default {
     const { model, params = {}, cache, optionKey = [] } = this.config;
     if (model) {
       this.optionsLoading = true;
-      try {
+      /*      try {
         this.options = await getOptionsModelConfig({
           model,
           params,
@@ -44,7 +44,7 @@ export default {
         console.log(e);
       } finally {
         this.$nextTick(() => (this.optionsLoading = false));
-      }
+      }*/
     }
   }
 };

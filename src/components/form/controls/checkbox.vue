@@ -1,56 +1,46 @@
 <template>
-  <ui-input-field
-    :config="config"
-    :item-class="itemClass"
-    :disabled="disabled"
-    :readonly="readonly"
-    v-show="display"
-  >
-    <div :class="[subitemClass, 'tw-flex', 'tw-items-center']">
-      <v-checkbox
-        v-if="showAllCheck"
-        v-model="isAllChecked"
-        label="全选"
-        :indeterminate="isChecked && !isAllChecked"
-        :disabled="disabled || readonly"
-        class="tw-mr-6"
-      />
-      <v-checkbox
-        v-for="(option, index) in options"
-        v-model="value"
-        :key="`${config.key}-checkbox-${index}`"
-        :value="option.value"
-        :disabled="disabled || readonly"
-        :label="option.label"
-        :class="{ 'tw-mr-6': index < options.length - 1 }"
-      />
-    </div>
-  </ui-input-field>
+  <div :class="['tw-flex', { 'tw-flex-col': config.vertical }]">
+    <v-checkbox
+      v-if="showAllCheck"
+      v-model="isAllChecked"
+      label="全选"
+      :indeterminate="isChecked && !isAllChecked"
+      class="tw-mr-6 tw-w-auto tw-flex-shrink-0"
+    />
+    <v-checkbox
+      v-for="(option, index) in options"
+      v-model="value"
+      :readonly="bind.readonly"
+      :disabled="bind.disabled"
+      :key="`${config.key}-checkbox-${index}`"
+      :value="option.value"
+      :label="option.label"
+      :class="{ 'tw-mr-6': index < options.length - 1 }"
+    />
+  </div>
 </template>
 
 <script>
-  import formItemMixin from '@admin-controls-mixins/form-item';
-  import optionsMixin from '@admin-controls-mixins/options';
-
-  export default {
-    name: 'InputCheckbox',
-    mixins: [formItemMixin, optionsMixin],
-    computed: {
-      isChecked() {
-        return !!this.value?.length;
-      },
-      isAllChecked: {
-        get() {
-          return this.value?.length === this.options?.length;
-        },
-        set(status) {
-          this.value = status ? this.options.map((option) => option.value) : [];
-          this.$emit('change', this.config.key, this.value);
-        }
-      },
-      showAllCheck() {
-        return this.config.hasOwnProperty('allChecked');
-      }
+  import defineControl from 'form/controls/mixins/define-input-control';
+  export default defineControl({
+    name: 'checkbox',
+    setup({ config }, { emit }, { value, options }) {
+      config.rulesOnInput = true;
+      const isChecked = computed(() => !!value?.value.length);
+      const isAllChecked = computed({
+        get: () => value.value.length === options.value.length,
+        set: (isAllChecked) =>
+          emit(
+            'change',
+            isAllChecked ? options.value.map((option) => option.value) : []
+          )
+      });
+      const showAllCheck = computed(() => config.hasOwnProperty('allChecked'));
+      return {
+        isChecked,
+        isAllChecked,
+        showAllCheck
+      };
     }
-  };
+  });
 </script>

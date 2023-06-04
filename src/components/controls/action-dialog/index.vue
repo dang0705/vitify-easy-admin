@@ -1,7 +1,6 @@
 <template>
   <v-dialog
     v-model="show"
-    :fullscreen="__MOBILE || fullscreen"
     :max-width="width"
     @keydown.esc="show = false"
     scrollable

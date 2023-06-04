@@ -1,9 +1,14 @@
-export function useVuetify() {
+export function useInstance() {
   const instance = getCurrentInstance();
   if (!instance) {
     throw new Error(`useVuetify should be called in setup().`);
   }
-  const { $vuetify } = instance.proxy;
+  return instance.proxy;
+}
+
+export function useVuetify() {
+  const instance = useInstance();
+  const { $vuetify } = instance;
   return {
     $vuetify,
     breakpoint: $vuetify.breakpoint,

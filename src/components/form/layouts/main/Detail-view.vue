@@ -1,7 +1,7 @@
 <template>
-  <div :class="['yb-detail-view', `page--${model || 'common'}-detail`]">
+  <div :class="['yb-detail-view', `page--${module || 'common'}-detail`]">
     <!-- Title -->
-    <h2 v-if="!inDialog" class="title">
+    <h2 class="title">
       {{ formedTitle }}
     </h2>
     <!-- Detail form -->
@@ -19,7 +19,6 @@
         :class="[
           'yb-detail-view__form',
           {
-            'yb-detail-view__form__in-dialog': inDialog,
             'yb-detail-view--two-columns': showTwoColumns
           }
         ]"
@@ -46,10 +45,8 @@
 
 <script>
   import viewMixin from './view';
-  import uiTheme from '@/define/ui-theme';
-
-  import { getModelDetail } from '@admin-utils/model-CRUD';
-  import { helpers } from '@utils/helpers';
+  import maybeFunctional from 'utils/maybe-functional';
+  import { READ_DETAIL } from 'module-utils/CRUD';
 
   const DEBUG = false;
 
@@ -61,10 +58,6 @@
         type: Array,
         default: () => []
       },
-      detailData: {
-        type: Object,
-        default: () => ({})
-      },
       formType: {
         type: String,
         default: 'vertical'
@@ -72,11 +65,6 @@
       labelWidth: {
         type: [String, Number],
         default: 100
-      },
-      //  弹框界面下, 区分新增或编辑
-      dialogIsNew: {
-        type: Boolean,
-        default: null
       },
       showTwoColumns: {
         type: Boolean,
@@ -102,14 +90,10 @@
           config: [],
           data: {}
         },
-        inDialog: this.dialogIsNew !== null,
         parentComponent: null
       };
     },
     computed: {
-      uiTheme() {
-        return uiTheme;
-      },
       routeParams() {
         return this.$route.params;
       },
@@ -125,16 +109,10 @@
           !Object.keys(this.routeParams).some(
             (params) => this.routeParams[params]
           );
-
-        return this.dialogIsNew === null
-          ? !(this.useEdit || !useCreate)
-          : this.dialogIsNew;
+        return !(this.useEdit || !useCreate);
       },
       formedTitle() {
         return (this.isNew ? '创建' : '编辑') + this.title;
-      },
-      hasDetailData() {
-        return !!Object.keys(this.detailData).length;
       }
     },
     watch: {
@@ -146,70 +124,27 @@
           this.init();
           this.initFormConfig();
         }
-      },
-      'parentComponent.$attrs'(val) {
-        this.$nextTick(() => this.updateDetailFormInDialog(val));
       }
     },
-    beforeMount() {
-      this.$nextTick(async () => {
-        this.parentComponent = this.hasDetailData
-          ? null
-          : /OrgDetail$/.test(this.$parent.$vnode.tag)
-          ? this.$parent.$parent
-          : this.$parent;
+    created() {
+      this.isNew ? this.initFormConfig() : this.getData();
+    },
 
-        await this.init();
-        await this.initFormConfig();
-      });
-    },
-    beforeDestroy() {
-      this.$validations.clear();
-    },
     methods: {
-      async init() {
-        if (!this.isNew) {
-          this.hasDetailData
-            ? this.updateDetailFormInDialog()
-            : await this.getData();
-        }
-        helpers.isFunction(this.formConfig) &&
-          (this.detailForm.config = this.formConfig({
-            isNew: this.isNew,
-            data: this.detailForm.data
-          }));
-      },
       async initFormConfig() {
-        this.detailForm.config = this.formConfig;
+        this.detailForm.config = maybeFunctional({
+          data: this.formConfig,
+          params: [{ isNew: this.isNew, data: this.detailForm.data }]
+        });
       },
       async getData() {
-        if (!this.inDialog) {
-          this.detailForm.data = await getModelDetail(
-            this.currentModule,
-            this.queryParams
-          );
-        }
+        this.detailForm.data = await READ_DETAIL(
+          this.currentModule,
+          this.queryParams
+        );
       },
       onCancel() {
-        if (this.inDialog) {
-          this.$emit('close');
-          this.parentComponent.$emit('cancel');
-        } else {
-          this.$router.back();
-        }
-      },
-      updateDetailFormInDialog(val) {
-        if (val && Object.keys(val).length) {
-          const { inDialog, data } = val;
-
-          this.inDialog = inDialog;
-          inDialog &&
-            this.$set(this.detailForm, 'data', Object.assign({}, data));
-
-          this.$bus.emit('detail-dialog-loaded', val);
-        } else {
-          this.detailForm.data = this.detailData;
-        }
+        this.$router.back();
       }
     }
   };
