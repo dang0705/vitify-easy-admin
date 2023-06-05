@@ -5,6 +5,7 @@
     :placeholder="config.placeholder || ' '"
     :counter="config.max"
     :with-counter="!!config.max"
+    :filled="config.variant || 'filled'"
     class="tw-w-full"
   />
 </template>

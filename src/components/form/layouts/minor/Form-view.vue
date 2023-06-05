@@ -20,38 +20,11 @@
           :form-configs="formConfigCache"
           :form-data="value"
           v-model="value[configData.key]"
-        >
-          <component
-            v-model="value[configData.key]"
-            :ref="getRef(configData)"
-            :is="`input-${configData.type}`"
-            :config="configData"
-            :form-configs="formConfigCache"
-            :form-data="value"
-            :data-source="value"
-            @update-config="handleUpdateConfig"
-          >
-            <template
-              v-for="(_, name) in $scopedSlots"
-              v-slot:[name]="{ options }"
-            >
-              <slot
-                :name="name"
-                :field="configData.key"
-                :value="
-                  value[configData.key] !== undefined
-                    ? value[configData.key]
-                    : configData.value
-                "
-                :options="options"
-              />
-            </template>
-          </component>
-        </ui-input>
+        />
       </v-col>
     </v-row>
     <slot name="after-controls" />
-    <slot name="actions">
+    <slot name="actions" v-if="controlsLoaded">
       <v-sheet class="tw-flex tw-justify-center">
         <template v-if="useGrid">
           <v-btn
@@ -100,7 +73,6 @@
 </template>
 
 <script setup>
-  import 'form/controls';
   import uiInput from 'form/controls/mixins/ui-input.vue';
   import getModelActionApi from 'module-utils/get-model-action-api';
   import { useInstance } from 'composables';
@@ -173,18 +145,32 @@
     formConfigCache.value.some(({ rules, required }) => rules || required)
   );
   const emit = defineEmits(['change', 'close-dialog']);
-  const initFormDataByConfig = (formConfig = formConfigCache.value) => {
+  const controlsLoaded = ref(false);
+  const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
     const values = {};
     formConfig.forEach(({ key, value }) => key && (values[key] = value));
     emit('change', values);
   };
 
   const handleUpdateConfig = ({ key, ...others }) => {
-    const item = formConfigCache.value.find(
-      ({ key: configKey }) => configKey === key
-    );
-    item.noRules = true;
+    formConfigCache.value.some((item) => {
+      const matched = item.key === key;
+      matched && (item.noRules = true);
+      return matched;
+    });
   };
+  watch(
+    () => props.value,
+    (value) => {
+      if (
+        !controlsLoaded.value &&
+        Object.keys(value).length === props.formConfig.length
+      ) {
+        setTimeout(() => (controlsLoaded.value = true), 100);
+      }
+    },
+    { immediate: true }
+  );
   watch(
     () => props.formConfig,
     (formConfig) => {
@@ -220,8 +206,4 @@
       shaped: true
     });
   };
-  const getRef = (config) =>
-    formConfigCache.value.some((item) => item.show?.by === config.key)
-      ? `input-${config.key}`
-      : null;
 </script>

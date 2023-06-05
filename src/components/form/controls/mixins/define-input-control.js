@@ -19,7 +19,7 @@ export default ({
   ...otherOptions
 }) =>
   defineComponent({
-    name: `Input${cfl(name)}`,
+    name: `I${cfl(name)}`,
     props: useProps(),
     ...useModel(name),
     computed: computedOptions,
@@ -67,6 +67,7 @@ export default ({
         bind: {
           ...attrs,
           id: useId(props),
+          rules: useRules(props).value,
           clearable: !readonly.value,
           readonly: readonly.value,
           disabled: disabled.value

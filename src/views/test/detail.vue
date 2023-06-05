@@ -7,17 +7,18 @@
 
   const formConfig = [
     {
-      type: 'text',
+      control: 'IText',
       key: 'text',
       label: '文本框',
       required: true,
       max: 25,
       inputType: 'phone',
       // readonly: true,
-      value: '测试测试'
+      value: '测试测试',
+      show: ({ type }) => type === 'sh'
     },
     {
-      type: 'select',
+      control: 'i-select',
       key: 'type',
       label: '下拉框',
       itemText: 'label',
@@ -32,7 +33,7 @@
       }
     },
     {
-      type: 'checkbox',
+      control: 'i-checkbox',
       key: 'selected',
       label: '复选框',
       allChecked: true,
@@ -50,7 +51,7 @@
       ]
     },
     {
-      type: 'radio',
+      control: 'i-radio',
       key: 'gender',
       label: '选项',
       value: 1,
@@ -66,13 +67,13 @@
       ]
     },
     {
-      type: 'test-custom-comp',
+      control: 'i-test-custom-comp',
       key: 'action',
       label: '自定义组件',
       value: 321
     },
     {
-      type: 'textarea',
+      control: 'i-textarea',
       key: 'textArea',
       label: '文本域',
       itemText: 'label',

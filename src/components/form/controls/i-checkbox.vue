@@ -35,7 +35,7 @@
           )
       });
       const showAllCheck = computed(() => config.hasOwnProperty('allChecked'));
-      emit('update-config', { key: config.key, noRules: true });
+      emit('no-rules');
       return {
         isChecked,
         isAllChecked,

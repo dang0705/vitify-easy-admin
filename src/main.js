@@ -6,6 +6,7 @@ import Bus from 'plugins/bus';
 import router from 'router';
 import pinia from 'store';
 import 'components';
+import 'form/controls';
 import 'styles/index.css';
 
 Vue.use(Bus);

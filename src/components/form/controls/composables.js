@@ -80,7 +80,7 @@ export const useRules = ({ config }) =>
       config.rules?.length && Array.isArray(config.rules) ? config.rules : [];
     config.required && rules.unshift((v) => !!v || `${config.label}为必填项!`);
 
-    if (['text', 'textarea'].includes(config.type)) {
+    if (['text', 'textarea'].includes(config.control)) {
       switch (config.inputType) {
         case 'email':
           rules.push((address) => email(address) || '邮箱格式不正确');
@@ -99,4 +99,4 @@ export const useRules = ({ config }) =>
     return rules;
   });
 
-export const useId = ({ config }) => config.key + '-' + config.type;
+export const useId = ({ config }) => config.key + '-' + config.control;

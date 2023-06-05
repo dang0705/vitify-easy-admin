@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <app-top-bar />
+    <!--    <app-top-bar />m-->
     <v-main class="tw-h-full">
       <router-view class="tw-flex-grow" />
     </v-main>
