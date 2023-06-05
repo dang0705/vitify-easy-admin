@@ -152,13 +152,6 @@
     emit('change', values);
   };
 
-  const handleUpdateConfig = ({ key, ...others }) => {
-    formConfigCache.value.some((item) => {
-      const matched = item.key === key;
-      matched && (item.noRules = true);
-      return matched;
-    });
-  };
   watch(
     () => props.value,
     (value) => {
