@@ -6,7 +6,8 @@ import {
   useModel,
   useOptions,
   useWatchValue,
-  useRules
+  useRules,
+  useId
 } from 'form/controls/composables';
 import cfl from 'utils/capitalize-the-first-letter';
 
@@ -30,9 +31,6 @@ export default ({
 
       const formView = inject('formView', null);
       const useGrid = inject('useGrid', null);
-
-      const rules = useRules(props);
-
       const options = computed(() => config.options);
 
       const selectedValue = computed(() => {
@@ -68,8 +66,8 @@ export default ({
         formView,
         bind: {
           ...attrs,
+          id: useId(props),
           clearable: !readonly.value,
-          // rules: rules.value,
           readonly: readonly.value,
           disabled: disabled.value
         },

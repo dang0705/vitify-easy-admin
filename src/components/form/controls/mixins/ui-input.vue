@@ -3,6 +3,7 @@
     :readonly="config.readonly"
     :id="id"
     :value="value"
+    :rules="rules"
     validate-on-blur
     v-show="display"
   >
@@ -15,9 +16,8 @@
       />
     </template>
     <template #label>
-      <label
-        :for="id"
-        :class="themes.control.label"
+      <span
+        :class="[...themes.control.label, 'tw-select-none']"
         v-if="config.label"
         v-text="`${config.label}：`"
       />
@@ -32,7 +32,8 @@
     useProps,
     useValue,
     useDefaultValue,
-    useRules
+    useRules,
+    useId
   } from 'form/controls/composables';
   import { helpers } from 'utils/helpers';
   import unitNumberString from 'utils/union-number-string';
@@ -46,7 +47,7 @@
   const value = useValue(props, defaultValue.value, emit);
   const rules = useRules(props);
 
-  const id = computed(() => key.value + '-' + props.config.type);
+  const id = useId(props);
   const key = computed(() => props.config.key);
 
   const dynamicShow = computed(() => {
@@ -96,6 +97,14 @@
         value.value !== defaultValue.value &&
           emit('change', defaultValue.value);
       }
+    }
+  );
+  watch(
+    () => props.config,
+    (config) => console.log(config.noRules),
+    {
+      immediate: true,
+      deep: true
     }
   );
 </script>

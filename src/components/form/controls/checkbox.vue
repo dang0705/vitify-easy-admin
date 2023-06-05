@@ -25,7 +25,6 @@
   export default defineControl({
     name: 'checkbox',
     setup({ config }, { emit }, { value, options }) {
-      config.rulesOnInput = true;
       const isChecked = computed(() => !!value?.value.length);
       const isAllChecked = computed({
         get: () => value.value.length === options.value.length,
@@ -36,6 +35,7 @@
           )
       });
       const showAllCheck = computed(() => config.hasOwnProperty('allChecked'));
+      emit('update-config', { key: config.key, noRules: true });
       return {
         isChecked,
         isAllChecked,

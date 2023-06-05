@@ -1,108 +1,111 @@
 <template>
-  <v-form class="form-view" v-model="valid" ref="form" lazy-validation>
-    <div class="form-items">
-      <slot name="before" />
-      <v-row>
-        <v-col
-          v-for="configData in formConfig"
-          :key="configData.key"
-          :cols="useGrid ? 4 : 12"
+  <v-form class="form-view" v-model="valid" ref="form">
+    <slot name="before-controls" />
+    <v-row>
+      <v-col
+        v-for="(configData, index) in formConfigCache"
+        :key="configData.key"
+        :cols="useGrid ? 4 : 12"
+      >
+        <div
+          v-if="!useGrid && (configData.title || configData.subTitle)"
+          :style="configData.titleStyle"
         >
-          <div
-            v-if="!useGrid && (configData.title || configData.subTitle)"
-            :style="configData.titleStyle"
-            class="title"
-          >
-            <h3 v-html="configData.title" />
-            <section v-html="configData.subTitle" />
-          </div>
-          <ui-input
-            :config="configData"
-            :form-configs="formConfig"
-            :form-data="value"
+          <h3 v-html="configData.title" />
+          <section v-html="configData.subTitle" />
+          <v-divider class="tw-my-4" />
+        </div>
+        <ui-input
+          :config="formConfigCache[index]"
+          :form-configs="formConfigCache"
+          :form-data="value"
+          v-model="value[configData.key]"
+        >
+          <component
             v-model="value[configData.key]"
+            :ref="getRef(configData)"
+            :is="`input-${configData.type}`"
+            :config="configData"
+            :form-configs="formConfigCache"
+            :form-data="value"
+            :data-source="value"
+            @update-config="handleUpdateConfig"
           >
-            <component
-              v-model="value[configData.key]"
-              :ref="getRef(configData)"
-              :is="`input-${configData.type}`"
-              :config="configData"
-              :form-configs="formConfig"
-              :form-data="value"
-              :data-source="value"
+            <template
+              v-for="(_, name) in $scopedSlots"
+              v-slot:[name]="{ options }"
             >
-              <template
-                v-for="(_, name) in $scopedSlots"
-                v-slot:[name]="{ options }"
-              >
-                <slot
-                  :name="name"
-                  :field="configData.key"
-                  :value="
-                    value[configData.key] !== undefined
-                      ? value[configData.key]
-                      : configData.value
-                  "
-                  :options="options"
-                />
-              </template>
-            </component>
-          </ui-input>
-        </v-col>
-      </v-row>
-      <slot name="after" />
-      <slot name="actions">
-        <v-sheet class="tw-flex tw-justify-center">
-          <template v-if="useGrid">
-            <v-btn
-              class="tw-mx-2 tw-h-8 tw-py-2"
-              elevation="2"
-              rounded
-              color="primary"
-              @click="$emit('search')"
-            >
-              查询
-            </v-btn>
-            <v-btn
-              class="tw-mx-2 tw-h-8 tw-py-2"
-              elevation="2"
-              rounded
-              plain
-              color="primary"
-              @click="onreset"
-            >
-              重置
-            </v-btn>
-          </template>
-          <template v-else>
-            <v-btn
-              class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
-              elevation="2"
-              rounded
-              color="primary"
-              @click="submit"
-            >
-              保存
-            </v-btn>
-            <v-btn
-              class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
-              elevation="2"
-              rounded
-              plain
-              color="primary"
-              @click="cancel"
-              v-text="inDialog ? '取消' : '返回'"
-            />
-          </template>
-        </v-sheet>
-      </slot>
-    </div>
+              <slot
+                :name="name"
+                :field="configData.key"
+                :value="
+                  value[configData.key] !== undefined
+                    ? value[configData.key]
+                    : configData.value
+                "
+                :options="options"
+              />
+            </template>
+          </component>
+        </ui-input>
+      </v-col>
+    </v-row>
+    <slot name="after-controls" />
+    <slot name="actions">
+      <v-sheet class="tw-flex tw-justify-center">
+        <template v-if="useGrid">
+          <v-btn
+            class="tw-mx-2 tw-h-8 tw-py-2"
+            elevation="2"
+            rounded
+            color="primary"
+            @click="$emit('search')"
+          >
+            查询
+          </v-btn>
+          <v-btn
+            class="tw-mx-2 tw-h-8 tw-py-2"
+            elevation="2"
+            rounded
+            plain
+            color="primary"
+            @click="onreset"
+          >
+            重置
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-btn
+            class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
+            elevation="2"
+            rounded
+            color="primary"
+            @click="submit"
+          >
+            保存
+          </v-btn>
+          <v-btn
+            class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
+            elevation="2"
+            rounded
+            plain
+            color="primary"
+            @click="cancel"
+            v-text="inDialog ? '取消' : '返回'"
+          />
+        </template>
+      </v-sheet>
+    </slot>
   </v-form>
 </template>
 
 <script setup>
   import 'form/controls';
   import uiInput from 'form/controls/mixins/ui-input.vue';
+  import getModelActionApi from 'module-utils/get-model-action-api';
+  import { useInstance } from 'composables';
+  import { CREATE, UPDATE } from 'module-utils/CRUD';
+
   const props = defineProps({
     actionApi: {
       type: String,
@@ -155,30 +158,44 @@
     }
   });
 
-  const useValidations = computed(() =>
-    props.formConfig.some(({ rules, required }) => rules || required)
-  );
-  const hasDefaultParams = computed(
-    () => Object.keys(props.defaultParams).length
-  );
-  const initFormDataByConfig = (formConfig = props.formConfig) =>
-    formConfig.forEach(({ key, value }) => key && (props.value[key] = value));
+  defineOptions({
+    model: {
+      prop: 'value',
+      event: 'change'
+    }
+  });
+  provide('formView', useInstance());
 
+  const formConfigCache = ref([...props.formConfig]);
+  const form = ref('');
+  const valid = ref(true);
+  const useValidations = computed(() =>
+    formConfigCache.value.some(({ rules, required }) => rules || required)
+  );
+  const emit = defineEmits(['change', 'close-dialog']);
+  const initFormDataByConfig = (formConfig = formConfigCache.value) => {
+    const values = {};
+    formConfig.forEach(({ key, value }) => key && (values[key] = value));
+    emit('change', values);
+  };
+
+  const handleUpdateConfig = ({ key, ...others }) => {
+    const item = formConfigCache.value.find(
+      ({ key: configKey }) => configKey === key
+    );
+    item.noRules = true;
+  };
   watch(
     () => props.formConfig,
     (formConfig) => {
       if (formConfig.length) {
-        props.isNew &&
-          (!Object.keys(props.value).length || hasDefaultParams.value) &&
-          initFormDataByConfig(formConfig);
+        props.isNew && initFormDataByConfig(formConfig);
       }
     },
     { immediate: true, deep: true }
   );
-
   const onreset = () => form.value.resetValidation();
 
-  const emit = defineEmits(['close-dialog']);
   const cancel = () => {
     initFormDataByConfig();
     props.inDialog ? emit('close-dialog') : useRouter().back();
@@ -204,103 +221,7 @@
     });
   };
   const getRef = (config) =>
-    props.formConfig.some((item) => item.show?.by === config.key)
+    formConfigCache.value.some((item) => item.show?.by === config.key)
       ? `input-${config.key}`
       : null;
-</script>
-
-<script>
-  import getModelActionApi from 'module-utils/get-model-action-api';
-  import { CREATE, UPDATE } from 'module-utils/CRUD';
-
-  export default {
-    name: 'FormView',
-    model: {
-      prop: 'value',
-      event: 'change'
-    },
-    provide() {
-      return {
-        formView: this,
-        useGrid: this.useGrid
-      };
-    },
-    data() {
-      return {
-        valid: true,
-        controlEmits: {}
-      };
-    },
-    computed: {
-      /*     useValidations() {
-        return this.currentFormConfig.some(
-          ({ rules, required }) => rules || required
-        );
-      },
-      currentFormConfig() {
-        return this.isNew
-          ? this.formConfig.filter((config) => !config.editOnly)
-          : this.formConfig;
-      },*/
-      hasDefaultParams() {
-        return Object.keys(this.defaultParams).length;
-      }
-    }
-    /*    watch: {
-      formConfig: {
-        immediate: true,
-        deep: true,
-        handler(formConfig) {
-          if (formConfig.length) {
-            this.isNew &&
-              (!Object.keys(this.value).length || this.hasDefaultParams) &&
-              this.initFormDataByConfig(formConfig);
-          }
-        }
-      }
-    }*/
-    /*methods: {
-      initFormDataByConfig(formConfig = this.formConfig) {
-        formConfig.forEach(
-          ({ type, key, value }) => key && this.$set(this.value, key, value)
-        );
-      },
-      getRef(config) {
-        return this.currentFormConfig.some(
-          (item) => item.show?.by === config.key
-        )
-          ? `input-${config.key}`
-          : null;
-      },
-      onreset() {
-        this.$refs.form.resetValidation();
-        this.initFormDataByConfig();
-        this.$emit('search');
-      },
-      async submit() {
-        this.useValidations && this.$refs.form.validate();
-        await this.$nextTick();
-        if (!this.valid) return;
-        const postParams = { ...this.value, ...this.defaultParams };
-        if (this.actionApi || this.action) {
-          await this.$http.post(
-            this.actionApi || getModelActionApi(this.model, this.action),
-            postParams
-          );
-        } else {
-          await (this.isNew ? CREATE : UPDATE)(this.model, postParams);
-        }
-        this.cancel();
-        await this.$nextTick();
-        this.$bus.emit('toast', {
-          msg: '操作成功',
-          shaped: true
-        });
-      },
-      cancel() {
-        this.initFormDataByConfig();
-        this.inDialog ? this.$emit('close-dialog') : this.$router.back();
-      }
-    }*/
-  };
 </script>

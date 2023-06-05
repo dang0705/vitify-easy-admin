@@ -14,8 +14,7 @@
       max: 25,
       inputType: 'phone',
       // readonly: true,
-      value: '测试测试',
-      show: ({ type }) => type === 'sh'
+      value: '测试测试'
     },
     {
       type: 'select',
@@ -38,7 +37,7 @@
       label: '复选框',
       allChecked: true,
       value: [],
-      rules: [(value) => value?.length > 1 || '不得少于一项'],
+      rules: [(value) => !!value?.length || '不得少于一项'],
       options: [
         {
           label: '一',

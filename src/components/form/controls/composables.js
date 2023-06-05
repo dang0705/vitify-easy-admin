@@ -25,6 +25,7 @@ export const useProps = () => ({
     default: null
   }
 });
+
 export const useDefaultValue = (value, formData) =>
   computed(() => maybeFunctional({ data: value, params: [formData] }));
 
@@ -34,6 +35,13 @@ const onValueChange = async (value, { config, formData, formConfigs }) => {
     helpers.isFunction(config.change) &&
     config.change({ config, formConfigs, value, formData });
 };
+const needNotVModelComponents = ['text', 'textarea', 'select'];
+export const useWatchValue = (name, attrs, props) =>
+  needNotVModelComponents.includes(name) &&
+  watch(
+    () => attrs.value,
+    (value) => onValueChange(value, props)
+  );
 export const useValue = (props, defaultValue, emit) =>
   computed({
     get() {
@@ -46,13 +54,11 @@ export const useValue = (props, defaultValue, emit) =>
         ? manualValue(props.formData)
         : manualValue ?? defaultValue;
     },
-    set(value) {
-      console.log(value);
+    async set(value) {
       emit('change', value);
       onValueChange(value, props);
     }
   });
-const needNotVModelComponents = ['text', 'textarea', 'select'];
 export const useModel = (name) =>
   needNotVModelComponents.includes(name)
     ? {}
@@ -63,16 +69,9 @@ export const useModel = (name) =>
         }
       };
 
-const componentsWithOptions = ['select', 'checkbox', 'radio'];
+const withOptionsComponents = ['select', 'checkbox', 'radio'];
 export const useOptions = (name, options) =>
-  componentsWithOptions.includes(name) ? { options } : {};
-
-export const useWatchValue = (name, attrs, props) =>
-  needNotVModelComponents.includes(name) &&
-  watch(
-    () => attrs.value,
-    (value) => onValueChange(value, props)
-  );
+  withOptionsComponents.includes(name) ? { options } : {};
 
 export const useRules = ({ config }) =>
   computed(() => {
@@ -99,3 +98,5 @@ export const useRules = ({ config }) =>
     }
     return rules;
   });
+
+export const useId = ({ config }) => config.key + '-' + config.type;
