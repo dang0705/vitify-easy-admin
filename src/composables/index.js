@@ -12,6 +12,7 @@ export function useVuetify() {
   return {
     $vuetify,
     breakpoint: $vuetify.breakpoint,
-    theme: $vuetify.theme
+    theme: $vuetify.theme,
+    mobile: $vuetify.breakpoint.mobile
   };
 }
