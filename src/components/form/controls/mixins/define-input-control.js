@@ -62,7 +62,7 @@ export default ({
             (value.value = val(props.formData));
         }
       );
-
+      const defineSlot = (position) => `${position}-${key.value}`;
       const setUpData = {
         formView,
         bind: {
@@ -72,16 +72,25 @@ export default ({
           clearable: !readonly.value,
           readonly: readonly.value,
           disabled: disabled.value,
-          leftInner: `left-inner-${key.value}`,
-          left: `left-${key.value}`,
-          rightInner: `right-inner-${key.value}`,
-          right: `right-${key.value}`
+          leftInner: defineSlot('left-inner'),
+          left: defineSlot('left'),
+          rightInner: defineSlot('right-inner'),
+          right: defineSlot('right')
         },
         value,
         ...useOptions(name, options)
       };
+      const slotBind = (position) => {
+        const isControl = config[position]?.control;
+        return {
+          vIf: config.left,
+          is: isControl || 'span',
+          ...(isControl ? setUpData : { vText: config[position] })
+        };
+      };
       return {
         ...setUpData,
+        slotBind,
         ...(setup && helpers.isFunction(setup)
           ? setup(props, context, setUpData)
           : {})

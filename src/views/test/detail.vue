@@ -1,7 +1,7 @@
 <template>
   <detail-view :form-config="formConfig">
     <template #left-text>
-      <p>lll</p>
+      <p>lllpo</p>
     </template>
     <template #left-inner-text>
       <p>left-text</p>
