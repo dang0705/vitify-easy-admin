@@ -1,5 +1,27 @@
 <template>
-  <detail-view :form-config="formConfig" />
+  <detail-view :form-config="formConfig">
+    <template #left-text>
+      <p>lll</p>
+    </template>
+    <template #left-inner-text>
+      <p>left-text</p>
+    </template>
+    <template #right-inner-text>
+      <p>right-text</p>
+    </template>
+    <template #right-text>
+      <p>rrr</p>
+    </template>
+    <template #on-text>
+      <p>aaa</p>
+    </template>
+    <template #under-text>
+      <p>bbb</p>
+    </template>
+    <template #append-text>
+      <p>apo</p>
+    </template>
+  </detail-view>
 </template>
 
 <script setup>
@@ -13,9 +35,9 @@
       required: true,
       max: 25,
       inputType: 'phone',
-      // readonly: true,
-      value: '测试测试',
-      show: ({ type }) => type === 'sh'
+      readonly: true
+      // value: '测试测试',
+      // show: ({ type }) => type === 'sh'
     },
     {
       control: 'i-select',

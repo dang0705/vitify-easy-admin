@@ -20,7 +20,11 @@
           :form-configs="formConfigCache"
           :form-data="value"
           v-model="value[configData.key]"
-        />
+        >
+          <template v-for="(_, name) in $scopedSlots" v-slot:[name]>
+            <slot :name="name" />
+          </template>
+        </ui-input>
       </v-col>
     </v-row>
     <slot name="after-controls" />

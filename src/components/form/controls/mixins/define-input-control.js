@@ -45,6 +45,7 @@ export default ({
       const readonly = computed(() => config.readonly);
       const disabled = computed(() => config.disabled);
 
+      const key = computed(() => config.key);
       const value = useValue(
         props,
         useDefaultValue(config.value, formData).value,
@@ -70,7 +71,11 @@ export default ({
           rules: useRules(props).value,
           clearable: !readonly.value,
           readonly: readonly.value,
-          disabled: disabled.value
+          disabled: disabled.value,
+          leftInner: `left-inner-${key.value}`,
+          left: `left-${key.value}`,
+          rightInner: `right-inner-${key.value}`,
+          right: `right-${key.value}`
         },
         value,
         ...useOptions(name, options)

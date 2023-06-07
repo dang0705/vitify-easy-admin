@@ -1,6 +1,5 @@
 <template>
   <v-input
-    :readonly="config.readonly"
     :id="id"
     :value="value"
     :rules="noRules ? rules : []"
@@ -22,28 +21,25 @@
         v-text="`${config.label}：`"
       />
     </template>
-    <component
-      v-model="formData[config.key]"
-      v-on="$listeners"
-      :ref="getRef(config)"
-      :is="getComponent(config.control)"
-      :config="config"
-      :form-configs="formConfigs"
-      :form-data="formData"
-      :data-source="formData"
-      @no-rules="noRules = true"
-    >
-      <template v-for="(_, name) in $scopedSlots" v-slot:[name]="{ options }">
-        <slot
-          :name="name"
-          :field="config.key"
-          :value="
-            value[config.key] !== undefined ? value[config.key] : config.value
-          "
-          :options="options"
-        />
-      </template>
-    </component>
+    <div class="tw-flex tw-w-full tw-flex-col">
+      <slot :name="`on-${key}`" />
+      <component
+        v-model="formData[config.key]"
+        v-on="$listeners"
+        :ref="getRef(config)"
+        :is="getComponent(config.control)"
+        :config="config"
+        :form-configs="formConfigs"
+        :form-data="formData"
+        :data-source="formData"
+        @no-rules="noRules = true"
+      >
+        <template v-for="(_, name) in $scopedSlots" v-slot:[name]>
+          <slot :name="name" />
+        </template>
+      </component>
+      <slot :name="`under-${key}`" />
+    </div>
   </v-input>
 </template>
 
@@ -137,8 +133,16 @@
   .col {
     > .v-input {
       ::v-deep {
+        > .v-input__prepend-outer,
+        > .v-input__append-outer {
+          display: flex;
+          flex-direction: column;
+          > * {
+            flex: 1;
+          }
+        }
         .v-input {
-          width: 100%;
+          //width: 100%;
         }
         > .v-input__control {
           & > .v-input__slot {
