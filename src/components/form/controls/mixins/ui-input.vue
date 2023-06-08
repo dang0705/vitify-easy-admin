@@ -133,16 +133,14 @@
   .col {
     > .v-input {
       ::v-deep {
-        > .v-input__prepend-outer,
-        > .v-input__append-outer {
+        .v-input__prepend-outer,
+        .v-input__append-outer {
           display: flex;
           flex-direction: column;
+          flex-shrink: 0;
           > * {
             flex: 1;
           }
-        }
-        .v-input {
-          //width: 100%;
         }
         > .v-input__control {
           & > .v-input__slot {

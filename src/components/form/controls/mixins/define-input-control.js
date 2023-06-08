@@ -53,7 +53,7 @@ export default ({
       );
 
       useWatchValue(name, attrs, props);
-
+      console.log(context);
       watch(
         () => props.config.value,
         (val) => {
@@ -62,6 +62,17 @@ export default ({
             (value.value = val(props.formData));
         }
       );
+
+      const positionalSlotsMapping = {
+        left: 'prepend',
+        'left-inner': 'prepend-inner',
+        'right-inner': 'append',
+        right: 'append-outer'
+      };
+      const positionalSlots = {};
+      for (let slot in context.slots) {
+        console.log(slot);
+      }
       const defineSlot = (position) => `${position}-${key.value}`;
       const setUpData = {
         formView,
@@ -72,20 +83,30 @@ export default ({
           clearable: !readonly.value,
           readonly: readonly.value,
           disabled: disabled.value,
-          leftInner: defineSlot('left-inner'),
+          'left-inner': defineSlot('left-inner'),
           left: defineSlot('left'),
-          rightInner: defineSlot('right-inner'),
+          'right-inner': defineSlot('right-inner'),
           right: defineSlot('right')
         },
         value,
+        positionalSlots: {
+          prepend: 'left',
+          'prepend-inner': 'leftInner',
+          append: 'rightInner',
+          'append-outer': 'right'
+        },
         ...useOptions(name, options)
       };
       const slotBind = (position) => {
-        const isControl = config[position]?.control;
+        const slot = config.slot?.[position];
+        if (!slot) return { bind: { is: 'span' } };
+        const isText = helpers.isString(slot);
         return {
-          vIf: config.left,
-          is: isControl || 'span',
-          ...(isControl ? setUpData : { vText: config[position] })
+          bind: {
+            is: slot.control || 'span',
+            ...(isText ? {} : setUpData)
+          },
+          text: isText ? slot : ''
         };
       };
       return {

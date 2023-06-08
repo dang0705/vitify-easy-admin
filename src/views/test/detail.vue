@@ -1,17 +1,13 @@
 <template>
   <detail-view :form-config="formConfig">
-    <template #left-text>
-      <p>lllpo</p>
-    </template>
-    <template #left-inner-text>
+    <template #left-text> </template>
+    <!--    <template #left-inner-text>
       <p>left-text</p>
     </template>
     <template #right-inner-text>
       <p>right-text</p>
     </template>
-    <template #right-text>
-      <p>rrr</p>
-    </template>
+    &lt;!&ndash;    <template #right-text> </template>&ndash;&gt;
     <template #on-text>
       <p>aaa</p>
     </template>
@@ -20,7 +16,7 @@
     </template>
     <template #append-text>
       <p>apo</p>
-    </template>
+    </template>-->
   </detail-view>
 </template>
 
@@ -35,7 +31,10 @@
       required: true,
       max: 25,
       inputType: 'phone',
-      readonly: true
+      // readonly: true,
+      slot: {
+        left: 'config-left'
+      }
       // value: '测试测试',
       // show: ({ type }) => type === 'sh'
     },
