@@ -3,6 +3,7 @@
     :id="id"
     :value="value"
     :rules="noRules ? rules : []"
+    :ref="`${key}-input`"
     validate-on-blur
     v-show="display"
   >
@@ -11,7 +12,7 @@
         style="width: 16px"
         small
         color="red"
-        v-text="config.required ? 'mdi-asterisk' : ''"
+        v-text="config.required || config.rules?.length ? 'mdi-asterisk' : ''"
       />
     </template>
     <template #label>
@@ -34,7 +35,7 @@
         :data-source="formData"
         @no-rules="noRules = true"
       >
-        <template v-for="(_, name) in $scopedSlots" v-slot:[name]>
+        <template v-for="(_, name) in $scopedSlots" #[name]>
           <slot :name="name" />
         </template>
       </component>
@@ -42,6 +43,21 @@
     </div>
   </v-input>
 </template>
+<script>
+  export default {
+    inheritAttrs: false,
+    computed: {
+      getRefs() {
+        return this.$refs;
+      }
+    },
+    methods: {
+      getRef({ useRef, key, control }) {
+        return useRef ? `${key}-${control}` : null;
+      }
+    }
+  };
+</script>
 
 <script setup>
   import { ref } from 'vue';
@@ -56,9 +72,9 @@
   } from 'form/controls/composables';
   import unitNumberString from 'utils/union-number-string';
   import camel2Kebab from 'utils/camel-2-kebab';
-  defineOptions({
-    inheritAttrs: false
-  });
+
+  const formView = inject('formView', null);
+  const formConfig = inject('formConfig', null);
   const noRules = ref(false);
   const props = defineProps(useProps());
   const emit = defineEmits(['change']);
@@ -66,9 +82,14 @@
     props.config.value,
     props.config.formData
   );
-  const value = useValue(props, defaultValue.value, emit);
+  const value = useValue({
+    props,
+    value: props.config.value,
+    formData: props.formData,
+    emit,
+    formView
+  });
   const rules = useRules(props).value;
-
   const id = useId(props);
   const key = computed(() => props.config.key);
   const dynamicShow = computed(() => {
@@ -110,11 +131,6 @@
     }
     return isDisplay;
   });
-  const getRef = (config) =>
-    props.formConfigs.some((item) => item.show?.by === config.key)
-      ? `input-${config.key}`
-      : null;
-
   watch(
     () => display.value,
     (display) => {
@@ -138,8 +154,12 @@
           display: flex;
           flex-direction: column;
           flex-shrink: 0;
+          margin-top: 0;
+          margin-bottom: 0;
           > * {
             flex: 1;
+            margin-top: 0;
+            padding-top: 0;
           }
         }
         > .v-input__control {

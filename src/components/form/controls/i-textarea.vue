@@ -1,6 +1,6 @@
 <template>
   <v-textarea
-    v-on="$listeners"
+    v-model="value"
     v-bind="bind"
     :placeholder="config.placeholder || ' '"
     :counter="config.max"
@@ -11,6 +11,10 @@
 </template>
 
 <script>
-  import defineControl from 'form/controls/mixins/define-input-control';
-  export default defineControl({ name: 'textarea' });
+  import defineControl, {
+    useLifeCircles
+  } from 'form/controls/mixins/define-input-control';
+  export default defineControl({
+    name: 'textarea' /*...useConfigLifeCircles()*/
+  });
 </script>

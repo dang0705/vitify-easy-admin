@@ -1,6 +1,35 @@
 <template>
-  <detail-view :form-config="formConfig">
-    <template #left-text> </template>
+  <detail-view
+    :form-config="formConfig"
+    :pagination-options="{ validate: true }"
+  >
+    <template #left_text="{ formData, className, test }">
+      <i-select
+        v-model="formData.slotType"
+        :class="className"
+        :form-data="formData"
+        :clearable="false"
+        :config="{
+          itemText: 'label',
+          options: [
+            {
+              label: '上海',
+              value: 'sh'
+            },
+            {
+              label: '北京',
+              value: 'bj'
+            }
+          ],
+          change({ config, formConfigs, value, formData }) {
+            formData.text = '';
+          }
+        }"
+      />
+    </template>
+    <!--    <template #left-inner_text> </template>
+    <template #right-inner_text> </template>
+    <template #right_text> </template>-->
     <!--    <template #left-inner-text>
       <p>left-text</p>
     </template>
@@ -24,86 +53,114 @@
   import DetailView from 'form/layouts/main/Detail-view.vue';
 
   const formConfig = [
-    {
-      control: 'IText',
-      key: 'text',
-      label: '文本框',
-      required: true,
-      max: 25,
-      inputType: 'phone',
-      // readonly: true,
-      slot: {
-        left: 'config-left'
-      }
-      // value: '测试测试',
-      // show: ({ type }) => type === 'sh'
-    },
-    {
-      control: 'i-select',
-      key: 'type',
-      label: '下拉框',
-      itemText: 'label',
-      options: [
-        {
-          label: '上海',
-          value: 'sh'
-        }
-      ],
-      change({ config, formConfigs, value, formData }) {
-        console.log(formConfigs);
-      }
-    },
-    {
-      control: 'i-checkbox',
-      key: 'selected',
-      label: '复选框',
-      allChecked: true,
-      value: [],
-      rules: [(value) => !!value?.length || '不得少于一项'],
-      options: [
-        {
-          label: '一',
-          value: 1
+    [
+      {
+        control: 'IText',
+        key: 'text',
+        label: '文本框',
+        required: true,
+        max: 25,
+        // inputType: 'phone',
+        // readonly: true,
+        /*      slot: {
+          left: {
+            control: 'i-select',
+            bind: {
+              config: {
+                items: [{ label: '上海', value: 'sh' }]
+              }
+            }
+          }
+        },*/
+        useRef: true,
+        change({ config, formConfigs, value, formData, refs }) {
+          refs['type-i-select'].config.options = [
+            { label: '北京', value: 'bj' }
+          ];
         },
-        {
-          label: '二',
-          value: 2
-        }
-      ]
-    },
-    {
-      control: 'i-radio',
-      key: 'gender',
-      label: '选项',
-      value: 1,
-      options: [
-        {
-          label: '男',
-          value: 1
+        // show: ({ type }) => type === 'sh',
+        created() {
+          // console.log('text-created');
         },
-        {
-          label: '女',
-          value: 0
+        mounted() {
+          // console.log('text-mounted');
         }
-      ]
-    },
-    {
-      control: 'i-test-custom-comp',
-      key: 'action',
-      label: '自定义组件',
-      value: 321
-    },
-    {
-      control: 'i-textarea',
-      key: 'textArea',
-      label: '文本域',
-      itemText: 'label',
-      options: [
-        {
-          label: '上海',
-          value: 'sh'
+      },
+      {
+        control: 'i-select',
+        key: 'type',
+        label: '下拉框',
+        itemText: 'label',
+        useRef: true,
+        options: [
+          {
+            label: '上海',
+            value: 'sh'
+          }
+        ],
+        change({ config, formConfigs, value, formData, refs }) {
+          !value && (formData.slotType = null);
         }
-      ]
-    }
+      }
+    ],
+    [
+      {
+        control: 'i-checkbox',
+        key: 'selected',
+        label: '复选框',
+        allChecked: true,
+        value: [],
+        rules: [(value) => !!value?.length || '不得少于一项'],
+        change({ config, formConfigs, value, formData }) {
+          formData.type = null;
+        },
+        options: [
+          {
+            label: '一',
+            value: 1
+          },
+          {
+            label: '二',
+            value: 2
+          }
+        ]
+      },
+      {
+        control: 'i-radio',
+        key: 'gender',
+        label: '选项',
+        value: 1,
+        options: [
+          {
+            label: '男',
+            value: 1
+          },
+          {
+            label: '女',
+            value: 0
+          }
+        ]
+      }
+    ],
+    [
+      {
+        control: 'i-textarea',
+        key: 'textArea',
+        label: '文本域',
+        itemText: 'label',
+        options: [
+          {
+            label: '上海',
+            value: 'sh'
+          }
+        ]
+      },
+      {
+        control: 'i-test-custom-comp',
+        key: 'action',
+        label: '自定义组件',
+        value: 321
+      }
+    ]
   ];
 </script>

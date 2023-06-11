@@ -1,5 +1,5 @@
 <template>
-  <v-form class="form-view" v-model="valid" ref="form">
+  <v-form class="form-view" v-model="valid" ref="form" lazy-validation>
     <slot name="before-controls" />
     <v-row>
       <v-col
@@ -16,12 +16,14 @@
           <v-divider class="tw-my-4" />
         </div>
         <ui-input
-          :config="formConfigCache[index]"
+          v-if="pagination ? page >= 0 : true"
+          :config="configData"
           :form-configs="formConfigCache"
           :form-data="value"
+          class="ui-input"
           v-model="value[configData.key]"
         >
-          <template v-for="(_, name) in $scopedSlots" v-slot:[name]>
+          <template v-for="(_, name) in $scopedSlots" #[name]>
             <slot :name="name" />
           </template>
         </ui-input>
@@ -31,42 +33,25 @@
     <slot name="actions" v-if="controlsLoaded">
       <v-sheet class="tw-flex tw-justify-center">
         <template v-if="useGrid">
-          <v-btn
-            class="tw-mx-2 tw-h-8 tw-py-2"
-            elevation="2"
-            rounded
-            color="primary"
-            @click="$emit('search')"
-          >
+          <v-btn v-bind="actionVBtnProps" @click="$emit('search')">
             查询
           </v-btn>
-          <v-btn
-            class="tw-mx-2 tw-h-8 tw-py-2"
-            elevation="2"
-            rounded
-            plain
-            color="primary"
-            @click="onreset"
-          >
-            重置
-          </v-btn>
+          <v-btn v-bind="actionVBtnProps" plain @click="onreset"> 重置 </v-btn>
         </template>
         <template v-else>
           <v-btn
-            class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
-            elevation="2"
-            rounded
-            color="primary"
+            v-if="!pagination || (pagination && paginationOptions?.save)"
+            v-bind="actionVBtnProps"
             @click="submit"
           >
             保存
           </v-btn>
+          <v-btn v-if="pagination" v-bind="actionVBtnProps" @click="next">
+            下一步
+          </v-btn>
           <v-btn
-            class="tw-mx-2 tw-h-8 tw-px-6 tw-py-2"
-            elevation="2"
-            rounded
+            v-bind="actionVBtnProps"
             plain
-            color="primary"
             @click="cancel"
             v-text="inDialog ? '取消' : '返回'"
           />
@@ -79,9 +64,15 @@
 <script setup>
   import uiInput from 'form/controls/mixins/ui-input.vue';
   import getModelActionApi from 'module-utils/get-model-action-api';
+  import actionVBtnProps from 'definition/action-v-btn-props';
   import { useInstance } from 'composables';
   import { CREATE, UPDATE } from 'module-utils/CRUD';
+  import { nextTick, onMounted } from 'vue';
+  import { helpers } from 'utils/helpers';
+  import { useRouter } from 'vue-router/composables';
+  const $router = useRouter();
 
+  // {save:true,pageField:'step',validate:true}
   const props = defineProps({
     actionApi: {
       type: String,
@@ -96,9 +87,8 @@
       default: () => ({})
     },
     formConfig: {
-      type: [Array, Function],
-      default: () => [],
-      required: true
+      type: [Array, Object, Function],
+      default: () => []
     },
     type: {
       type: String,
@@ -131,57 +121,79 @@
     inDialog: {
       type: Boolean,
       default: false
+    },
+    paginationOptions: {
+      type: [Object, Function],
+      default: null
+    },
+    saveOnPagination: {
+      type: Boolean,
+      default: false
     }
   });
-
+  const emit = defineEmits(['change', 'close-dialog']);
   defineOptions({
     model: {
       prop: 'value',
       event: 'change'
     }
   });
-  provide('formView', useInstance());
-
-  const formConfigCache = ref([...props.formConfig]);
+  const formView = useInstance();
+  const formConfig = inject('formConfig', null);
   const form = ref('');
   const valid = ref(true);
+  provide('formView', formView);
+
+  const page = ref(0);
+  const pagination = computed(() => helpers.isArray(formConfig[0]));
+  const formConfigCache = computed(() =>
+    pagination.value ? formConfig[page.value] : [...formConfig]
+  );
+
+  const next = async () => {
+    form.value.validate();
+    await nextTick();
+    console.log(form.value);
+    /*props.paginationOptions.validate &&
+      useValidations.value &&
+      form.value.validate();*/
+    if (valid.value && page.value < formConfigCache.value.length) {
+      form.value.resetValidation();
+      page.value++;
+    }
+  };
+  const prev = () => (page.value ? page.value-- : $router.back());
+
+  /*  pagination &&
+    watch(
+      () => page.value,
+      () => props.isNew && initFormDataByConfig(formConfigCache.value),
+      {
+        deep: true
+      }
+    );*/
+
   const useValidations = computed(() =>
     formConfigCache.value.some(({ rules, required }) => rules || required)
   );
-  const emit = defineEmits(['change', 'close-dialog']);
+
   const controlsLoaded = ref(false);
   const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
     const values = {};
     formConfig.forEach(({ key, value }) => key && (values[key] = value));
     emit('change', values);
   };
+  setTimeout(() => (controlsLoaded.value = true), 100);
 
-  watch(
-    () => props.value,
-    (value) => {
-      if (
-        !controlsLoaded.value &&
-        Object.keys(value).length === props.formConfig.length
-      ) {
-        setTimeout(() => (controlsLoaded.value = true), 100);
-      }
-    },
-    { immediate: true }
-  );
-  watch(
-    () => props.formConfig,
-    (formConfig) => {
-      if (formConfig.length) {
-        props.isNew && initFormDataByConfig(formConfig);
-      }
-    },
-    { immediate: true, deep: true }
-  );
   const onreset = () => form.value.resetValidation();
 
   const cancel = () => {
+    if (pagination.value) {
+      prev();
+      return;
+    }
     initFormDataByConfig();
-    props.inDialog ? emit('close-dialog') : useRouter().back();
+    props.inDialog ? emit('close-dialog') : $router.back();
   };
   const submit = async () => {
     useValidations.value && form.value.validate();
@@ -203,4 +215,5 @@
       shaped: true
     });
   };
+  onMounted(() => props.isNew && initFormDataByConfig(formConfigCache.value));
 </script>

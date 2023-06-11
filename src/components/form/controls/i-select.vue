@@ -1,6 +1,6 @@
 <template>
   <v-select
-    v-on="$listeners"
+    v-model="value"
     v-bind="bind"
     :items="options"
     :item-text="config.itemText"
@@ -13,6 +13,13 @@
 </template>
 
 <script>
-  import defineControl from 'form/controls/mixins/define-input-control';
-  export default defineControl({ name: 'select' });
+  import { VSelect } from 'vuetify/lib/components';
+  import defineControl, {
+    useLifeCircles
+  } from 'form/controls/mixins/define-input-control';
+  export default defineControl({
+    name: 'select',
+    components: { VSelect },
+    ...useLifeCircles
+  });
 </script>

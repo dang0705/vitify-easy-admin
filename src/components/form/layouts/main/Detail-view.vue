@@ -8,11 +8,11 @@
     <section class="yb-detail-view-content">
       <slot name="nav" />
       <form-view
-        v-if="detailForm.config.length"
+        v-if="detailForm.config.length || Object.keys(detailForm.config).length"
+        v-bind="$attrs"
         v-model="detailForm.data"
         :model="modelName"
         :default-params="queryParams"
-        :form-config="detailForm.config"
         :type="formType"
         :use-grid="$attrs.useGrid"
         :is-new="isNew"
@@ -55,7 +55,7 @@
     mixins: [viewMixin],
     props: {
       formConfig: {
-        type: Array,
+        type: [Array, Object, Function],
         default: () => []
       },
       formType: {
@@ -82,6 +82,11 @@
         type: Boolean,
         default: false
       }
+    },
+    provide() {
+      return {
+        formConfig: this.formConfig
+      };
     },
     data() {
       return {

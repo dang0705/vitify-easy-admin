@@ -12,8 +12,11 @@
 </template>
 
 <script>
-  import defineControl from 'form/controls/mixins/define-input-control';
+  import defineControl, {
+    useLifeCircles
+  } from 'form/controls/mixins/define-input-control';
   export default defineControl({
     name: 'radio'
+    // ...useConfigLifeCircles()
   });
 </script>

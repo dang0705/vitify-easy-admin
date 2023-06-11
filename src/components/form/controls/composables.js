@@ -1,8 +1,9 @@
 import { helpers } from 'utils/helpers';
 import maybeFunctional from 'utils/maybe-functional';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import email from '@/regexp/usage/email';
 import phone from '@/regexp/usage/phone';
+
 export const useProps = () => ({
   formConfigs: {
     type: Array,
@@ -23,51 +24,58 @@ export const useProps = () => ({
   modelValue: {
     type: [String, Array, Object, Number, Boolean],
     default: null
+  },
+  refs: {
+    type: Object,
+    default: () => ({})
   }
 });
 
 export const useDefaultValue = (value, formData) =>
   computed(() => maybeFunctional({ data: value, params: [formData] }));
 
-const onValueChange = async (value, { config, formData, formConfigs }) => {
+const onValueChange = async (
+  value,
+  { config, formData, formConfigs },
+  refs = {}
+) => {
   await nextTick();
   config.change &&
     helpers.isFunction(config.change) &&
-    config.change({ config, formConfigs, value, formData });
+    config.change({ config, formConfigs, value, formData, refs });
 };
-const needNotVModelComponents = ['text', 'textarea', 'select'];
-export const useWatchValue = (name, attrs, props) =>
-  needNotVModelComponents.includes(name) &&
-  watch(
-    () => attrs.value,
-    (value) => onValueChange(value, props)
-  );
-export const useValue = (props, defaultValue, emit) =>
+export const useValue = ({ props, value, formData, emit, formView = null }) =>
   computed({
     get() {
-      if (props.modelValue === null && !Object.keys(props.formData).length)
-        return;
+      if (props.modelValue === null && !Object.keys(formData).length) return;
       const key = props.config.key;
       const manualValue =
-        props.modelValue ?? props.formData[key]?.value ?? props.formData[key];
+        props.modelValue ?? formData[key]?.value ?? formData[key];
+
       return helpers.isFunction(manualValue)
         ? manualValue(props.formData)
-        : manualValue ?? defaultValue;
+        : manualValue ?? useDefaultValue(value, formData).value;
     },
     async set(value) {
       emit('change', value);
-      onValueChange(value, props);
+      await nextTick();
+      let refs = {};
+      if (props.config.useRef) {
+        const { $children } = formView.$refs.form;
+        refs = $children.reduce(
+          (prev, { getRefs }) => Object.assign({}, prev, getRefs),
+          $children.find(({ getRefs }) => getRefs).getRefs
+        );
+      }
+      onValueChange(value, props, refs);
     }
   });
-export const useModel = (name) =>
-  needNotVModelComponents.includes(name)
-    ? {}
-    : {
-        model: {
-          prop: 'modelValue',
-          event: 'change'
-        }
-      };
+export const useModel = (name) => ({
+  model: {
+    prop: 'modelValue',
+    event: 'change'
+  }
+});
 
 const withOptionsComponents = ['select', 'checkbox', 'radio'];
 export const useOptions = (name, options) =>
@@ -78,7 +86,7 @@ export const useRules = ({ config }) =>
     if (config.readonly) return [];
     const rules =
       config.rules?.length && Array.isArray(config.rules) ? config.rules : [];
-    config.required && rules.unshift((v) => !!v || `${config.label}为必填项!`);
+    config.required && rules.unshift((v) => !!v || `${config.label}不能为空!`);
 
     if (['text', 'textarea'].includes(config.control)) {
       switch (config.inputType) {

@@ -21,11 +21,14 @@
 </template>
 
 <script>
-  import defineControl from 'form/controls/mixins/define-input-control';
+  import defineControl, {
+    useLifeCircles
+  } from 'form/controls/mixins/define-input-control';
   export default defineControl({
     name: 'checkbox',
+    // ...useConfigLifeCircles(),
     setup({ config }, { emit }, { value, options }) {
-      const isChecked = computed(() => !!value?.value.length);
+      const isChecked = computed(() => !!value.value.length);
       const isAllChecked = computed({
         get: () => value.value.length === options.value.length,
         set: (isAllChecked) =>
