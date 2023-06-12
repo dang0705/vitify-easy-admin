@@ -23,7 +23,7 @@
             in-dialog
             :action-api="actionApi"
             :action="action"
-            :model="model"
+            :module="model"
             :is-new="feedback ? !Object.keys(data).length : isNew"
             :default-params="defaultParams"
             :form-config="formConfigs"

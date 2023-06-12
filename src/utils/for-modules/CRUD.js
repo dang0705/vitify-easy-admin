@@ -13,20 +13,23 @@ const getModule = () => {
 const getCurrentModuleApi = ({ type, module = getModule().currentModule }) => {
   const name = type === 'options' ? toCamelCase(`get-${module}-${type}`) : type;
   if (!modules.value[module])
-    throw new Error(`'${module}' is invalid ${type} module`);
+    throw new Error(`'${module}' is an invalid ${type} module`);
+
+  if (!modules.value[module].apis[name])
+    throw new Error(
+      `The module '${module}' hasn't '${name}' of CRUD, includes it in origin if you want to use it`
+    );
+
   return `/${module}/${modules.value[module].apis[name]}`;
 };
 const request = async (...arg) => {
-  const [type, model, formData] = arg;
+  const [type, module, formData] = arg;
   const isFullParams = arg.length === 3;
-
-  return await $http.post(
-    getCurrentModuleApi({
-      type,
-      module: isFullParams ? model : getModule().currentModule
-    }),
-    isFullParams ? formData : arg[arg.length - 1]
-  );
+  const api = getCurrentModuleApi({
+    type,
+    module: isFullParams ? module : getModule().currentModule
+  });
+  return await $http.post(api, isFullParams ? formData : arg[arg.length - 1]);
 };
 const READ_LIST = (...arg) => request('list', ...arg);
 const READ_DETAIL = (...arg) => request('detail', ...arg);

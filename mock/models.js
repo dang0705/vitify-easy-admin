@@ -2,7 +2,7 @@ export default [
   {
     actions: {},
     children: [],
-    includes: ['list'],
+    includes: ['list' /* 'create'*/],
     model: 'module-a',
     name: 'MODULE_A',
     options: {}

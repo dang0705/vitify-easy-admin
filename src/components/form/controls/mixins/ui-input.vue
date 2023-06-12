@@ -1,9 +1,8 @@
 <template>
   <v-input
     :id="id"
-    :value="value"
-    :rules="noRules ? rules : []"
     :ref="`${key}-input`"
+    hide-details
     validate-on-blur
     v-show="display"
   >
@@ -27,6 +26,7 @@
       <component
         v-model="formData[config.key]"
         v-on="$listeners"
+        :show="display"
         :ref="getRef(config)"
         :is="getComponent(config.control)"
         :config="config"

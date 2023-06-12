@@ -27,7 +27,7 @@
             ref="formView"
             class="tw-mb-6 tw-w-full tw-pt-2"
             use-grid
-            @search="getData"
+            @reset="getData"
           />
           <v-btn
             v-if="modules[moduleName]?.apis.create"
@@ -93,16 +93,14 @@
   import { READ_LIST } from 'module-utils/CRUD';
   import { useRoute } from 'vue-router/composables';
   import { useModuleStore } from 'store/modules-store';
+  import { useModuleName } from 'form/layouts/composables';
+  import { useVuetify } from 'composables';
 
-  const {
-    proxy: {
-      $vuetify: {
-        breakpoint: { mobile }
-      }
-    }
-  } = getCurrentInstance();
-
-  const moduleName = computed(() => props.module || currentModule.value);
+  const { mobile } = useVuetify();
+  const props = defineProps(tableViewProps);
+  const moduleName = useModuleName(props);
+  provide('module', moduleName.value);
+  provide('idField', props.idKey);
 
   const {
     currentModule,
@@ -114,19 +112,15 @@
   } = storeToRefs(useModuleStore());
 
   const emits = defineEmits(['input', 'selected']);
-  const props = defineProps(tableViewProps);
 
   props.thead.forEach(
     (thead) => thead.fixed && (thead.cellClass = thead.class = 'td-fixed')
   );
-  provide('idField', props.idKey);
-
-  provide('module', moduleName.value);
 
   // Merge search form config start
 
   const mergedSearchFormConfig = ref([]);
-  props.searchFormConfig.forEach((config) =>
+  props.formConfig.forEach((config) =>
     mergedSearchFormConfig.value.push(
       currentModuleStatus.hasOwnProperty(config.key) && !config.options
         ? { ...config, options: statusOptions(currentModuleStatus[config.key]) }

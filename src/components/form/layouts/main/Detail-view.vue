@@ -1,156 +1,92 @@
 <template>
-  <div :class="['yb-detail-view', `page--${module || 'common'}-detail`]">
-    <!-- Title -->
-    <h2 class="title">
-      {{ formedTitle }}
-    </h2>
-    <!-- Detail form -->
-    <section class="yb-detail-view-content">
-      <slot name="nav" />
-      <form-view
-        v-if="detailForm.config.length || Object.keys(detailForm.config).length"
-        v-bind="$attrs"
-        v-model="detailForm.data"
-        :model="modelName"
-        :default-params="queryParams"
-        :type="formType"
-        :use-grid="$attrs.useGrid"
-        :is-new="isNew"
-        :class="[
-          'yb-detail-view__form',
-          {
-            'yb-detail-view--two-columns': showTwoColumns
-          }
-        ]"
-      >
-        <template #before>
-          <slot name="before" />
-        </template>
-
-        <template v-for="(_, name) in $scopedSlots" v-slot:[name]="data">
-          <slot
-            :name="name"
-            v-bind="{
-              ...data,
-              formConfig: detailForm.config,
-              formData: detailForm.data,
-              refreshData: getData
-            }"
-          />
-        </template>
-      </form-view>
-    </section>
+  <div
+    :class="[
+      `page--${moduleName || 'common'}-detail`,
+      'tw-flex',
+      'tw-flex-col',
+      'tw-h-full'
+    ]"
+  >
+    <h2 class="title tw-py-4 tw-font-bold" v-text="formedTitle" />
+    <v-divider class="tw-pb-4" />
+    <slot name="nav" />
+    <form-view
+      v-if="configs.length || Object.keys(configs).length"
+      v-bind="$attrs"
+      v-model="formData"
+      :module="moduleName"
+      :extra-request-params="queryParams"
+      :use-grid="$attrs.useGrid"
+      :is-new="isNew"
+    >
+      <template v-for="(_, name) in $scopedSlots" #[name]="data">
+        <slot
+          :name="name"
+          v-bind="{
+            ...data,
+            formConfig,
+            formData,
+            refreshData: getData
+          }"
+        />
+      </template>
+    </form-view>
   </div>
 </template>
 
-<script>
-  import viewMixin from './view';
-  import maybeFunctional from 'utils/maybe-functional';
+<script setup>
   import { READ_DETAIL } from 'module-utils/CRUD';
+  import { useFormModulesProps } from 'form/layouts/composables';
+  import { computed, watch } from 'vue';
+  import { useRoute, useRouter } from 'vue-router/composables';
+  import { useModuleStore } from 'store/modules-store';
+  import { storeToRefs } from 'pinia';
+  import { useFormConfigs, useModuleName } from 'form/layouts/composables';
 
   const DEBUG = false;
+  const { currentModule, currentMenuName } = storeToRefs(useModuleStore());
+  const $router = useRouter();
+  const $route = useRoute();
+  const props = defineProps({
+    title: {
+      type: String,
+      default: ''
+    },
+    labelWidth: {
+      type: [String, Number],
+      default: 100
+    },
+    ...useFormModulesProps()
+  });
 
-  export default {
-    name: 'DetailView',
-    mixins: [viewMixin],
-    props: {
-      formConfig: {
-        type: [Array, Object, Function],
-        default: () => []
-      },
-      formType: {
-        type: String,
-        default: 'vertical'
-      },
-      labelWidth: {
-        type: [String, Number],
-        default: 100
-      },
-      showTwoColumns: {
-        type: Boolean,
-        default: false
-      },
-      noActions: {
-        type: Boolean,
-        default: false
-      },
-      saveButtonText: {
-        type: String,
-        default: '保存'
-      },
-      staticParams: {
-        type: Boolean,
-        default: false
-      }
-    },
-    provide() {
-      return {
-        formConfig: this.formConfig
-      };
-    },
-    data() {
-      return {
-        DEBUG,
-        detailForm: {
-          config: [],
-          data: {}
-        },
-        parentComponent: null
-      };
-    },
-    computed: {
-      routeParams() {
-        return this.$route.params;
-      },
-      queryParams() {
-        return { ...this.routeParams, ...this.defaultParams };
-      },
-      useEdit() {
-        return this.$route.meta?.useEdit;
-      },
-      isNew() {
-        const useCreate =
-          !this.routeParams ||
-          !Object.keys(this.routeParams).some(
-            (params) => this.routeParams[params]
-          );
-        return !(this.useEdit || !useCreate);
-      },
-      formedTitle() {
-        return (this.isNew ? '创建' : '编辑') + this.title;
-      }
-    },
-    watch: {
-      currentModule() {
-        this.init();
-      },
-      defaultParams() {
-        if (!this.staticParams) {
-          this.init();
-          this.initFormConfig();
-        }
-      }
-    },
-    created() {
-      this.isNew ? this.initFormConfig() : this.getData();
-    },
+  const configs = useFormConfigs(props.formConfig);
+  provide('formConfig', configs);
 
-    methods: {
-      async initFormConfig() {
-        this.detailForm.config = maybeFunctional({
-          data: this.formConfig,
-          params: [{ isNew: this.isNew, data: this.detailForm.data }]
-        });
-      },
-      async getData() {
-        this.detailForm.data = await READ_DETAIL(
-          this.currentModule,
-          this.queryParams
-        );
-      },
-      onCancel() {
-        this.$router.back();
-      }
-    }
+  const moduleName = useModuleName(props.module);
+  const routeParams = computed(() => $route.params);
+  const queryParams = computed(() => ({
+    ...routeParams.value,
+    ...props.extraRequestParams
+  }));
+  const useEdit = computed(() => $route.params.edit);
+  const isNew = computed(() => {
+    const useCreate =
+      !routeParams.value ||
+      !Object.keys(routeParams.value).some(
+        (params) => routeParams.value[params]
+      );
+    return !(useEdit.value || !useCreate);
+  });
+  const formedTitle = computed(
+    () =>
+      (isNew.value ? '创建' : '编辑') + (props.title || currentMenuName.value)
+  );
+
+  const formData = ref({});
+  const getData = async () => {
+    formData.value = await READ_DETAIL(currentModule.value, queryParams.value);
   };
+  const init = () => !isNew.value && getData();
+  watch(() => currentModule.value, init);
+  !isNew.value && getData();
 </script>

@@ -1,8 +1,13 @@
 <template>
-  <div :class="['tw-flex', { 'tw-flex-col': config.vertical }]">
+  <v-input
+    :value="value"
+    :rules="bind.rules"
+    :class="['tw-flex', { 'tw-flex-col': config.vertical }]"
+  >
     <v-checkbox
       v-if="showAllCheck"
       v-model="isAllChecked"
+      hide-details
       label="全选"
       :indeterminate="isChecked && !isAllChecked"
       class="tw-mr-6 tw-w-auto tw-flex-shrink-0"
@@ -10,6 +15,7 @@
     <v-checkbox
       v-for="(option, index) in options"
       v-model="value"
+      hide-details
       :readonly="bind.readonly"
       :disabled="bind.disabled"
       :key="`${config.key}-checkbox-${index}`"
@@ -17,7 +23,7 @@
       :label="option.label"
       :class="{ 'tw-mr-6': index < options.length - 1 }"
     />
-  </div>
+  </v-input>
 </template>
 
 <script>

@@ -4,7 +4,7 @@
       v-if="loading"
       indeterminate
       color="primary"
-      class="tw-fixed tw-h-full tw-w-full tw--left-50p tw--top-50p tw-transform tw-translate-x-1/2 tw-translate-y-1/2"
+      class="tw--left-50p tw--top-50p tw-fixed tw-h-full tw-w-full tw-translate-x-1/2 tw-translate-y-1/2 tw-transform"
       style="z-index: 9999"
     />
     <v-snackbar
@@ -60,10 +60,10 @@
         <v-card-text v-html="captureStatus.msg" class="tw-text-black" />
         <v-sheet
           color="#fff"
-          class="tw-flex tw-justify-center tw-py-4 tw-w-full"
+          class="tw-flex tw-w-full tw-justify-center tw-py-4"
         >
           <v-btn
-            class="tw-mx-2 tw-py-2 tw-h-8"
+            class="tw-mx-2 tw-h-8 tw-py-2"
             elevation="2"
             rounded
             color="primary"
@@ -72,11 +72,11 @@
             确 认
           </v-btn>
           <v-btn
-            class="tw-mx-2 tw-py-2 tw-h-8"
+            class="tw-mx-2 tw-h-8 tw-py-2"
             elevation="2"
             rounded
             plain
-            :color="$primary"
+            color="primary"
             @click="captureStatus.show = false"
           >
             取 消
@@ -88,9 +88,9 @@
 </template>
 
 <script setup>
-  import { useBus } from '@bus';
-  import { GLOBAL_LOADING, TOAST, CONFIRM } from '@/define/emit-event';
-  import { useConfirm } from '../../../src/plugins/confirm';
+  import { useBus } from 'plugins/bus';
+  import { GLOBAL_LOADING, TOAST, CONFIRM } from 'definition/emit-event';
+  import { useConfirm } from 'plugins/confirm';
 
   const captureStatus = reactive({
     show: false,
@@ -120,7 +120,8 @@
     }
   });
 
-  useBus.on(CONFIRM, ({ msg, onConfirm, confirmText, toast }) =>
-    useConfirm({ msg, confirmText, toast, onConfirm })
-  );
+  useBus.on(CONFIRM, ({ msg, onConfirm, confirmText, toast, ...others }) => {
+    console.log(msg);
+    useConfirm({ msg, confirmText, toast, onConfirm, ...others });
+  });
 </script>

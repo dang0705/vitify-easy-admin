@@ -18,13 +18,13 @@ export default ({
 }) =>
   defineComponent({
     name: `I${cfl(name)}`,
-    props: useProps(),
+    props: { ...useProps(), show: { type: Boolean, default: true } },
     ...useModel(name),
     computed: computedOptions,
     watch: watchOption,
     ...otherOptions,
     setup(props, context) {
-      const { config, formData, dataSource } = props;
+      const { config, formData, dataSource, show } = props;
       const { emit, attrs } = context;
       const formView = inject('formView', null);
       const formConfig = inject('formConfig', null);
@@ -92,7 +92,7 @@ export default ({
         bind: {
           ...attrs,
           id: useId(props),
-          rules: useRules(props).value,
+          rules: show ? useRules(props).value : [],
           clearable: !readonly.value && attrs.clearable !== false,
           readonly: readonly.value,
           disabled: disabled.value,

@@ -3,6 +3,7 @@
     v-model="value"
     v-bind="bind"
     :maxlength="config.max"
+    :rules="bind.rules"
     :placeholder="config.placeholder || ' '"
     :counter="config.max"
     :full-width="config.fullwidth"

@@ -1,37 +1,44 @@
 <template>
-  <v-form class="form-view" v-model="valid" ref="form" lazy-validation>
+  <v-form
+    class="form-view tw-flex-grow tw-flex tw-flex-col tw-items-start"
+    v-model="valid"
+    ref="form"
+    lazy-validation
+  >
     <slot name="before-controls" />
-    <v-row>
-      <v-col
-        v-for="(configData, index) in formConfigCache"
-        :key="configData.key"
-        :cols="useGrid ? 4 : 12"
-      >
-        <div
-          v-if="!useGrid && (configData.title || configData.subTitle)"
-          :style="configData.titleStyle"
+    <div class="tw-flex-grow tw-w-full">
+      <v-row class="tw-flex-grow-0">
+        <v-col
+          v-for="(configData, _) in formConfigCache"
+          :key="configData.key"
+          :cols="useGrid ? 4 : 12"
         >
-          <h3 v-html="configData.title" />
-          <section v-html="configData.subTitle" />
-          <v-divider class="tw-my-4" />
-        </div>
-        <ui-input
-          v-if="pagination ? page >= 0 : true"
-          :config="configData"
-          :form-configs="formConfigCache"
-          :form-data="value"
-          class="ui-input"
-          v-model="value[configData.key]"
-        >
-          <template v-for="(_, name) in $scopedSlots" #[name]>
-            <slot :name="name" />
-          </template>
-        </ui-input>
-      </v-col>
-    </v-row>
+          <div
+            v-if="!useGrid && (configData.title || configData.subTitle)"
+            :style="configData.titleStyle"
+          >
+            <h3 v-html="configData.title" />
+            <section v-html="configData.subTitle" />
+            <v-divider class="tw-my-4" />
+          </div>
+          <ui-input
+            v-if="pagination ? page >= 0 : true"
+            :config="configData"
+            :form-configs="formConfigCache"
+            :form-data="value"
+            class="ui-input"
+            v-model="value[configData.key]"
+          >
+            <template v-for="(_, name) in $scopedSlots" #[name]>
+              <slot :name="name" />
+            </template>
+          </ui-input>
+        </v-col>
+      </v-row>
+    </div>
     <slot name="after-controls" />
-    <slot name="actions" v-if="controlsLoaded">
-      <v-sheet class="tw-flex tw-justify-center">
+    <slot name="actions">
+      <v-sheet class="tw-mb-4 tw-flex tw-w-full tw-justify-center">
         <template v-if="useGrid">
           <v-btn v-bind="actionVBtnProps" @click="$emit('search')">
             查询
@@ -39,21 +46,16 @@
           <v-btn v-bind="actionVBtnProps" plain @click="onreset"> 重置 </v-btn>
         </template>
         <template v-else>
-          <v-btn
-            v-if="!pagination || (pagination && paginationOptions?.save)"
-            v-bind="actionVBtnProps"
-            @click="submit"
-          >
-            保存
-          </v-btn>
-          <v-btn v-if="pagination" v-bind="actionVBtnProps" @click="next">
-            下一步
+          <v-btn v-bind="actionVBtnProps" @click="submit">
+            {{
+              pagination && page < formConfig.length - 1 ? '下一步' : submitText
+            }}
           </v-btn>
           <v-btn
             v-bind="actionVBtnProps"
             plain
             @click="cancel"
-            v-text="inDialog ? '取消' : '返回'"
+            v-text="pagination && page ? '上一步' : inDialog ? '取消' : '返回'"
           />
         </template>
       </v-sheet>
@@ -70,9 +72,15 @@
   import { nextTick, onMounted } from 'vue';
   import { helpers } from 'utils/helpers';
   import { useRouter } from 'vue-router/composables';
+  import {
+    useFormModulesProps,
+    useFormConfigs
+  } from 'form/layouts/composables';
+  import { useBus } from 'plugins/bus';
+
   const $router = useRouter();
 
-  // {save:true,pageField:'step',validate:true}
+  // {save:true,pageField:'step',confirm}
   const props = defineProps({
     actionApi: {
       type: String,
@@ -85,10 +93,6 @@
     value: {
       type: Object,
       default: () => ({})
-    },
-    formConfig: {
-      type: [Array, Object, Function],
-      default: () => []
     },
     type: {
       type: String,
@@ -110,14 +114,6 @@
       type: Boolean,
       default: true
     },
-    defaultParams: {
-      type: Object,
-      default: () => ({})
-    },
-    model: {
-      type: String,
-      default: ''
-    },
     inDialog: {
       type: Boolean,
       default: false
@@ -126,12 +122,13 @@
       type: [Object, Function],
       default: null
     },
-    saveOnPagination: {
-      type: Boolean,
-      default: false
-    }
+    submitText: {
+      type: String,
+      default: '保存'
+    },
+    ...useFormModulesProps()
   });
-  const emit = defineEmits(['change', 'close-dialog']);
+  const emit = defineEmits(['change', 'close-dialog', 'search']);
   defineOptions({
     model: {
       prop: 'value',
@@ -139,53 +136,43 @@
     }
   });
   const formView = useInstance();
-  const formConfig = inject('formConfig', null);
-  const form = ref('');
-  const valid = ref(true);
   provide('formView', formView);
+  const formConfig =
+    inject('formConfig', null) || useFormConfigs(props.formConfig);
 
   const page = ref(0);
   const pagination = computed(() => helpers.isArray(formConfig[0]));
-  const formConfigCache = computed(() =>
-    pagination.value ? formConfig[page.value] : [...formConfig]
-  );
+  const formConfigCache = ref([...formConfig]);
 
-  const next = async () => {
-    form.value.validate();
-    await nextTick();
-    console.log(form.value);
-    /*props.paginationOptions.validate &&
-      useValidations.value &&
-      form.value.validate();*/
-    if (valid.value && page.value < formConfigCache.value.length) {
-      form.value.resetValidation();
-      page.value++;
-    }
-  };
-  const prev = () => (page.value ? page.value-- : $router.back());
-
-  /*  pagination &&
+  pagination.value &&
     watch(
       () => page.value,
-      () => props.isNew && initFormDataByConfig(formConfigCache.value),
+      (page) => (formConfigCache.value = [...formConfig[page]]),
       {
-        deep: true
+        immediate: true
       }
-    );*/
+    );
+  const prev = () => (page.value ? page.value-- : $router.back());
 
+  const form = ref('');
+  const valid = ref(true);
   const useValidations = computed(() =>
-    formConfigCache.value.some(({ rules, required }) => rules || required)
+    formConfigCache.value.some(
+      ({ rules, required }) => (rules && rules.length) || required
+    )
   );
 
-  const controlsLoaded = ref(false);
   const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
     const values = {};
-    formConfig.forEach(({ key, value }) => key && (values[key] = value));
+    formConfig.forEach(({ key, value = null }) => key && (values[key] = value));
     emit('change', values);
   };
-  setTimeout(() => (controlsLoaded.value = true), 100);
 
-  const onreset = () => form.value.resetValidation();
+  const onreset = () => {
+    form.value.resetValidation();
+    initFormDataByConfig();
+    emit('reset');
+  };
 
   const cancel = () => {
     if (pagination.value) {
@@ -199,21 +186,57 @@
     useValidations.value && form.value.validate();
     await nextTick();
     if (!valid.value) return;
-    const postParams = { ...props.value, ...props.defaultParams };
-    if (props.actionApi || props.action) {
-      await $http.post(
-        props.actionApi || getModelActionApi(props.model, props.action),
-        postParams
-      );
-    } else {
-      await (props.isNew ? CREATE : UPDATE)(props.model, postParams);
+
+    const postParams = {
+      ...props.value,
+      ...props.extraRequestParams,
+      ...(pagination.value
+        ? { [props.paginationOptions?.pageField || 'page']: page.value + 1 }
+        : {})
+    };
+    const request = async () => {
+      if (props.actionApi || props.action) {
+        await $http.post(
+          props.actionApi || getModelActionApi(props.module, props.action),
+          postParams
+        );
+      } else {
+        await (props.isNew ? CREATE : UPDATE)(props.module, postParams);
+      }
+      !pagination.value ||
+        (pagination.value &&
+          page.value === formConfigCache.value.length - 1 &&
+          useBus.emit('toast', {
+            msg: '操作成功',
+            shaped: true
+          }));
+    };
+    if (
+      (pagination.value && props.paginationOptions?.save) ||
+      !pagination.value
+    ) {
+      await request();
+      !pagination.value && $router.back();
+    } else if (
+      pagination.value &&
+      props.paginationOptions?.confirm &&
+      page.value === formConfig.length - 1
+    ) {
+      useBus.emit('confirm', {
+        msg: `是否${props.submitText}？`,
+        toast: true,
+        onConfirm: async () => {
+          await request();
+          $router.back();
+        }
+      });
     }
-    cancel();
     await nextTick();
-    useBus.emit('toast', {
-      msg: '操作成功',
-      shaped: true
-    });
+
+    pagination.value &&
+      page.value < formConfigCache.value.length &&
+      page.value++;
   };
+
   onMounted(() => props.isNew && initFormDataByConfig(formConfigCache.value));
 </script>

@@ -5,6 +5,7 @@ const resolvePath = (dir) => path.join(workspace, dir);
 export default {
   resolve: {
     alias: {
+      vue: 'vue/dist/vue.js',
       '@': resolvePath('src'),
       'module-utils': resolvePath('src/utils/for-modules'),
       components: resolvePath('src/components'),

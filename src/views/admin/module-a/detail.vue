@@ -1,9 +1,12 @@
 <template>
-  <detail-view :form-config="formConfig" :pagination-options="{ save: true }">
-    <template #left_text="{ formData, className, test }">
+  <detail-view
+    :form-config="formConfig"
+    :pagination-options="{ confirm: true }"
+    submit-text="确定"
+  >
+    <template #left_text="{ formData }">
       <i-select
         v-model="formData.slotType"
-        :class="className"
         :form-data="formData"
         :clearable="false"
         :config="{
@@ -57,25 +60,26 @@
         label: '文本框',
         required: true,
         max: 25,
-        // inputType: 'phone',
+        // ruleType: 'phone',
         // readonly: true,
         /*      slot: {
-          left: {
-            control: 'i-select',
-            bind: {
-              config: {
-                items: [{ label: '上海', value: 'sh' }]
-              }
+        left: {
+          control: 'i-select',
+          bind: {
+            config: {
+              items: [{ label: '上海', value: 'sh' }]
             }
           }
-        },*/
+        }
+      },*/
         useRef: true,
         change({ config, formConfigs, value, formData, refs }) {
+          console.log(refs);
           refs['type-i-select'].config.options = [
             { label: '北京', value: 'bj' }
           ];
         },
-        // show: ({ type }) => type === 'sh',
+        show: ({ type }) => type === 'sh',
         created() {
           // console.log('text-created');
         },
@@ -107,7 +111,7 @@
         label: '复选框',
         allChecked: true,
         value: [],
-        rules: [(value) => !!value?.length || '不得少于一项'],
+        // rules: [(value) => !!value?.length || '不得少于一项'],
         change({ config, formConfigs, value, formData }) {
           formData.type = null;
         },

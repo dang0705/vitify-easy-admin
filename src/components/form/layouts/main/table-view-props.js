@@ -1,3 +1,5 @@
+import { useFormModulesProps } from 'form/layouts/composables';
+
 export default {
   createBtnText: {
     type: String,
@@ -15,10 +17,6 @@ export default {
     type: Array,
     default: () => []
   },
-  module: {
-    type: String,
-    default: null
-  },
   sort: {
     type: Boolean,
     default: false
@@ -29,10 +27,6 @@ export default {
   },
   rowActions: {
     type: [Array, Function],
-    default: () => []
-  },
-  searchFormConfig: {
-    type: Array,
     default: () => []
   },
   idKey: {
@@ -56,5 +50,6 @@ export default {
     default: () => {
       return 'v-tr';
     }
-  }
+  },
+  ...useFormModulesProps()
 };

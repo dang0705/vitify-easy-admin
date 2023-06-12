@@ -89,7 +89,7 @@ export const useRules = ({ config }) =>
     config.required && rules.unshift((v) => !!v || `${config.label}不能为空!`);
 
     if (['text', 'textarea'].includes(config.control)) {
-      switch (config.inputType) {
+      switch (config.ruleType) {
         case 'email':
           rules.push((address) => email(address) || '邮箱格式不正确');
           break;
