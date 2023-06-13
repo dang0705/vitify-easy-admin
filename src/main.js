@@ -8,6 +8,7 @@ import pinia from 'store';
 import 'components';
 import 'form/controls';
 import 'styles/index.css';
+import { registerMicroApps, start } from 'qiankun';
 
 Vue.use(Bus);
 Vue.use(http);
@@ -18,3 +19,12 @@ new Vue({
   vuetify,
   router
 }).$mount('#app');
+registerMicroApps([
+  {
+    name: 'marx',
+    entry: 'http://local.test.yooc.test:9999/sou',
+    container: '#marx-container',
+    activeRule: '/module-b'
+  }
+]);
+start();

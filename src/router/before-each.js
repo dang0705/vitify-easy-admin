@@ -58,8 +58,8 @@ export default async function (to, from, next) {
       to,
       routes,
       router: this,
-      parentName: adminRoot,
-      notFound
+      parentName: adminRoot
+      // notFound
     });
     resetRouter = reset;
     isAsyncRouteAdded = true;
