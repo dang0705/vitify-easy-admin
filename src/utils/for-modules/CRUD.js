@@ -1,26 +1,29 @@
 import { useModuleStore } from 'store/modules-store';
 import toCamelCase from 'utils/kebab-2-camel';
 
-const { modules } = storeToRefs(useModuleStore());
-
 const getModule = () => {
-  const { currentModule, currentMinorModule } = storeToRefs(useModuleStore());
+  const { currentModule, currentMinorModule, modules } = storeToRefs(
+    useModuleStore()
+  );
   return {
+    modules: modules.value,
     currentModule: currentModule.value,
     currentMinorModule: currentMinorModule.value
   };
 };
-const getCurrentModuleApi = ({ type, module = getModule().currentModule }) => {
+const getCurrentModuleApi = ({ type, module }) => {
+  const { modules, currentModule } = getModule();
+  module = module || currentModule;
   const name = type === 'options' ? toCamelCase(`get-${module}-${type}`) : type;
-  if (!modules.value[module])
+  if (!modules[module])
     throw new Error(`'${module}' is an invalid ${type} module`);
 
-  if (!modules.value[module].apis[name])
+  if (!modules[module].apis[name])
     throw new Error(
       `The module '${module}' hasn't '${name}' of CRUD, includes it in origin if you want to use it`
     );
 
-  return `/${module}/${modules.value[module].apis[name]}`;
+  return `/${module}/${modules[module].apis[name]}`;
 };
 const request = async (...arg) => {
   const [type, module, formData] = arg;

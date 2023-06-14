@@ -9,25 +9,26 @@
     <div class="tw-flex-grow tw-w-full">
       <v-row class="tw-flex-grow-0">
         <v-col
-          v-for="(configData, _) in formConfigCache"
-          :key="configData.key"
+          v-for="(configuration, _) in formConfigCache"
+          :key="configuration.key"
           :cols="useGrid ? 4 : 12"
         >
           <div
-            v-if="!useGrid && (configData.title || configData.subTitle)"
-            :style="configData.titleStyle"
+            v-if="!useGrid && (configuration.title || configuration.subTitle)"
+            :style="configuration.titleStyle"
           >
-            <h3 v-html="configData.title" />
-            <section v-html="configData.subTitle" />
+            <h3 v-html="configuration.title" />
+            <section v-html="configuration.subTitle" />
             <v-divider class="tw-my-4" />
           </div>
           <ui-input
-            v-if="pagination ? page >= 0 : true"
-            :config="configData"
+            v-model="value[configuration.key]"
+            :ref="configuration.key ? `${configuration.key}-input` : null"
+            :config="configuration"
             :form-configs="formConfigCache"
             :form-data="value"
             class="ui-input"
-            v-model="value[configData.key]"
+            @control-is-show="configuration.show = $event"
           >
             <template v-for="(_, name) in $scopedSlots" #[name]>
               <slot :name="name" />
@@ -47,15 +48,13 @@
         </template>
         <template v-else>
           <v-btn v-bind="actionVBtnProps" @click="submit">
-            {{
-              pagination && page < formConfig.length - 1 ? '下一步' : submitText
-            }}
+            {{ pagination && !isLastPage ? nextText : submitText }}
           </v-btn>
           <v-btn
             v-bind="actionVBtnProps"
             plain
             @click="cancel"
-            v-text="pagination && page ? '上一步' : inDialog ? '取消' : '返回'"
+            v-text="pagination && page ? prevText : inDialog ? '取消' : '返回'"
           />
         </template>
       </v-sheet>
@@ -69,7 +68,6 @@
   import actionVBtnProps from 'definition/action-v-btn-props';
   import { useInstance } from 'composables';
   import { CREATE, UPDATE } from 'module-utils/CRUD';
-  import { nextTick, onMounted } from 'vue';
   import { helpers } from 'utils/helpers';
   import { useRouter } from 'vue-router/composables';
   import {
@@ -126,6 +124,14 @@
       type: String,
       default: '保存'
     },
+    prevText: {
+      type: String,
+      default: '上一步'
+    },
+    nextText: {
+      type: String,
+      default: '下一步'
+    },
     ...useFormModulesProps()
   });
   const emit = defineEmits(['change', 'close-dialog', 'search']);
@@ -137,22 +143,10 @@
   });
   const formView = useInstance();
   provide('formView', formView);
+
   const formConfig =
     inject('formConfig', null) || useFormConfigs(props.formConfig);
-
-  const page = ref(0);
-  const pagination = computed(() => helpers.isArray(formConfig[0]));
   const formConfigCache = ref([...formConfig]);
-
-  pagination.value &&
-    watch(
-      () => page.value,
-      (page) => (formConfigCache.value = [...formConfig[page]]),
-      {
-        immediate: true
-      }
-    );
-  const prev = () => (page.value ? page.value-- : $router.back());
 
   const form = ref('');
   const valid = ref(true);
@@ -162,36 +156,32 @@
     )
   );
 
-  const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
-    const values = {};
-    formConfig.forEach(({ key, value = null }) => key && (values[key] = value));
-    emit('change', values);
-  };
-
-  const onreset = () => {
-    form.value.resetValidation();
-    initFormDataByConfig();
-    emit('reset');
-  };
-
-  const cancel = () => {
-    if (pagination.value) {
-      prev();
-      return;
-    }
-    initFormDataByConfig();
-    props.inDialog ? emit('close-dialog') : $router.back();
-  };
+  const pagination = computed(() => helpers.isArray(formConfig[0]));
+  const isLastPage = pagination.value
+    ? computed(() => page.value === formConfig.length - 1)
+    : null;
+  const page = pagination.value ? ref(0) : null;
+  pagination.value &&
+    watch(
+      () => page.value,
+      (page) => (formConfigCache.value = [...formConfig[page]]),
+      {
+        immediate: true
+      }
+    );
+  const prev = () => (page.value ? page.value-- : $router.back());
   const submit = async () => {
     useValidations.value && form.value.validate();
     await nextTick();
     if (!valid.value) return;
-
     const postParams = {
       ...props.value,
       ...props.extraRequestParams,
       ...(pagination.value
-        ? { [props.paginationOptions?.pageField || 'page']: page.value + 1 }
+        ? {
+            [props.paginationOptions?.pageField || 'page']: page.value + 1,
+            ...(isLastPage.value ? { submit: true } : {})
+          }
         : {})
     };
     const request = async () => {
@@ -205,12 +195,13 @@
       }
       !pagination.value ||
         (pagination.value &&
-          page.value === formConfigCache.value.length - 1 &&
+          isLastPage.value &&
           useBus.emit('toast', {
             msg: '操作成功',
             shaped: true
           }));
     };
+
     if (
       (pagination.value && props.paginationOptions?.save) ||
       !pagination.value
@@ -220,7 +211,7 @@
     } else if (
       pagination.value &&
       props.paginationOptions?.confirm &&
-      page.value === formConfig.length - 1
+      isLastPage.value
     ) {
       useBus.emit('confirm', {
         msg: `是否${props.submitText}？`,
@@ -232,11 +223,28 @@
       });
     }
     await nextTick();
-
-    pagination.value &&
-      page.value < formConfigCache.value.length &&
-      page.value++;
+    pagination.value && !isLastPage.value && page.value++;
+  };
+  const cancel = () => {
+    if (pagination.value) {
+      prev();
+      return;
+    }
+    initFormDataByConfig();
+    props.inDialog ? emit('close-dialog') : $router.back();
+  };
+  const onreset = () => {
+    form.value.resetValidation();
+    initFormDataByConfig();
+    emit('reset');
+  };
+  const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
+    const values = {};
+    formConfig.forEach(({ key, value = null, show = true }, index, self) => {
+      key && (values[key] = value);
+    });
+    emit('change', values);
   };
 
-  onMounted(() => props.isNew && initFormDataByConfig(formConfigCache.value));
+  props.isNew && initFormDataByConfig(formConfigCache.value);
 </script>

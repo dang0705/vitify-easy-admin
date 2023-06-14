@@ -1,5 +1,10 @@
 <template>
   <div class="tw-h-full">
+    <action-dialog
+      v-if="dialogDefaultStatus.show !== null"
+      v-model="dialogDefaultStatus.show"
+      v-bind="dialogDefaultStatus"
+    />
     <v-progress-circular
       v-if="loading"
       indeterminate
@@ -88,10 +93,18 @@
 </template>
 
 <script setup>
+  import ActionDialog from 'components/controls/action-dialog/index.vue';
   import { useBus } from 'plugins/bus';
-  import { GLOBAL_LOADING, TOAST, CONFIRM } from 'definition/emit-event';
+  import {
+    GLOBAL_LOADING,
+    TOAST,
+    CONFIRM,
+    DIALOG
+  } from 'definition/emit-event';
   import { useConfirm } from 'plugins/confirm';
-
+  const dialogDefaultStatus = reactive({
+    show: null
+  });
   const captureStatus = reactive({
     show: false,
     title: '请确认',
@@ -123,5 +136,11 @@
   useBus.on(CONFIRM, ({ msg, onConfirm, confirmText, toast, ...others }) => {
     console.log(msg);
     useConfirm({ msg, confirmText, toast, onConfirm, ...others });
+  });
+  useBus.on(DIALOG, (props) => {
+    dialogDefaultStatus.show = true;
+    for (let prop in props) {
+      dialogDefaultStatus[prop] = props[prop];
+    }
   });
 </script>

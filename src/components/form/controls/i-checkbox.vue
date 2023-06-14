@@ -1,8 +1,8 @@
 <template>
   <v-input
-    :value="value"
     :rules="bind.rules"
-    :class="['tw-flex', { 'tw-flex-col': config.vertical }]"
+    :value="value"
+    :class="['tw-flex', 'tw-items-center', { 'tw-flex-col': config.vertical }]"
   >
     <v-checkbox
       v-if="showAllCheck"
@@ -32,7 +32,10 @@
   } from 'form/controls/mixins/define-input-control';
   export default defineControl({
     name: 'checkbox',
-    // ...useConfigLifeCircles(),
+    ...useLifeCircles({
+      created() {},
+      mounted() {}
+    }),
     setup({ config }, { emit }, { value, options }) {
       const isChecked = computed(() => !!value.value.length);
       const isAllChecked = computed({

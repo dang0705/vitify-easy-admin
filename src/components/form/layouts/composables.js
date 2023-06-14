@@ -17,8 +17,10 @@ export const useFormModulesProps = () => ({
     default: () => ({})
   }
 });
-export const useFormConfigs = (formConfig) =>
-  maybeFunctional({ data: formConfig });
+export const useFormConfigs = (formConfig) => {
+  formConfig.forEach(({ show }, index, self) => (self[index].show = show));
+  return maybeFunctional({ data: formConfig });
+};
 
 export const useModuleName = (module) => {
   const { currentModule } = storeToRefs(useModuleStore());

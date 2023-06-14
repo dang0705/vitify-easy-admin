@@ -43,7 +43,6 @@
   import { storeToRefs } from 'pinia';
   import { useFormConfigs, useModuleName } from 'form/layouts/composables';
 
-  const DEBUG = false;
   const { currentModule, currentMenuName } = storeToRefs(useModuleStore());
   const $router = useRouter();
   const $route = useRoute();

@@ -11,6 +11,7 @@
         :clearable="false"
         :config="{
           itemText: 'label',
+          useRef: true,
           options: [
             {
               label: '上海',
@@ -21,47 +22,25 @@
               value: 'bj'
             }
           ],
-          change({ config, formConfigs, value, formData }) {
+          change({ config, formConfigs, value, formData, refs }) {
             formData.text = '';
           }
         }"
       />
     </template>
-    <!--    <template #left-inner_text> </template>
-    <template #right-inner_text> </template>
-    <template #right_text> </template>-->
-    <!--    <template #left-inner-text>
-      <p>left-text</p>
-    </template>
-    <template #right-inner-text>
-      <p>right-text</p>
-    </template>
-    &lt;!&ndash;    <template #right-text> </template>&ndash;&gt;
-    <template #on-text>
-      <p>aaa</p>
-    </template>
-    <template #under-text>
-      <p>bbb</p>
-    </template>
-    <template #append-text>
-      <p>apo</p>
-    </template>-->
   </detail-view>
 </template>
-
 <script setup>
   import DetailView from 'form/layouts/main/Detail-view.vue';
 
   const formConfig = [
     [
       {
-        control: 'IText',
+        control: 'i-text',
         key: 'text',
         label: '文本框',
         required: true,
         max: 25,
-        // ruleType: 'phone',
-        // readonly: true,
         /*      slot: {
         left: {
           control: 'i-select',
@@ -75,17 +54,30 @@
         useRef: true,
         change({ config, formConfigs, value, formData, refs }) {
           console.log(refs);
-          refs['type-i-select'].config.options = [
-            { label: '北京', value: 'bj' }
-          ];
+          // refs['type-input'].show = false;
+          // console.log((formConfigs[1].label = 'changed-label'));
         },
-        show: ({ type }) => type === 'sh',
+        /*       show: ({ type }, refs) => {
+          console.log(refs['type-i-select']);
+          return type === 'sh';
+        },*/
         created() {
           // console.log('text-created');
         },
         mounted() {
           // console.log('text-mounted');
         }
+      },
+      {
+        control: 'i-date-picker',
+        key: 'date',
+        label: '时间选择器'
+      },
+      {
+        control: 'i-editor',
+        key: 'html',
+        label: '富文本',
+        required: true
       },
       {
         control: 'i-select',
@@ -99,8 +91,11 @@
             value: 'sh'
           }
         ],
+        mounted() {
+          console.log('mounted');
+        },
         change({ config, formConfigs, value, formData, refs }) {
-          !value && (formData.slotType = null);
+          // !value && (formData.slotType = null);
         }
       }
     ],

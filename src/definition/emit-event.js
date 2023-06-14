@@ -4,3 +4,4 @@ export const GLOBAL_LOADING = 'global-loading';
 export const CONFIRM = 'confirm';
 export const TOAST = 'toast';
 export const ERROR = 'error';
+export const DIALOG = 'dialog';

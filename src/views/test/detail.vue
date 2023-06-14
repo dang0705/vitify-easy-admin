@@ -83,6 +83,7 @@
           // console.log('text-mounted');
         }
       },
+
       {
         control: 'i-select',
         key: 'type',

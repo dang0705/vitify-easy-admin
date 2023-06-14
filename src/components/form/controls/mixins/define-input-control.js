@@ -19,48 +19,26 @@ export default ({
   defineComponent({
     name: `I${cfl(name)}`,
     props: { ...useProps(), show: { type: Boolean, default: true } },
-    ...useModel(name),
+    ...useModel(),
     computed: computedOptions,
     watch: watchOption,
     ...otherOptions,
     setup(props, context) {
-      const { config, formData, dataSource, show } = props;
-      const { emit, attrs } = context;
+      const { config, formData, show } = props;
+      const { emit, attrs, slots } = context;
       const formView = inject('formView', null);
-      const formConfig = inject('formConfig', null);
-      console.log(formConfig);
-      const useGrid = inject('useGrid', null);
       const options = computed(() => config.options);
-      const selectedValue = computed(() => {
-        const selected = helpers.isArray(options.value)
-          ? options.value?.find((option) => option.value === value.value)
-          : {};
-        return selected?.label;
-      });
-      const useGridAttrs = computed(() =>
-        useGrid ? { hideDetails: true } : {}
-      );
       const readonly = computed(() => config.readonly);
       const disabled = computed(() => config.disabled);
-
       const key = computed(() => config.key);
       const value = useValue({
         props,
-        value: config.value,
-        formData,
-        formView,
-        emit
+        emit,
+        formView
       });
-
-      // console.log(formView.$refs.form.$children);
-      watch(
-        () => config.value,
-        (val) => {
-          helpers.isFunction(val) &&
-            Object.keys(formData).length &&
-            (value.value = val(formData));
-        }
-      );
+      helpers.isFunction(config.value) &&
+        Object.keys(formData).length &&
+        (value.value = config.value(formData));
 
       const overwriteVuetifySlotMapping = {
         left: 'prepend',
@@ -69,11 +47,11 @@ export default ({
         right: 'append-outer'
       };
       const vuetifySlots = ref({});
-      for (let slot in context.slots) {
+      for (let slot in slots) {
         const position = slot.split('_')[0];
         if (overwriteVuetifySlotMapping.hasOwnProperty(position)) {
           vuetifySlots.value[overwriteVuetifySlotMapping[position]] =
-            context.slots[slot];
+            slots[slot];
         }
       }
       const reverseKeyValue = (obj) => {
@@ -129,9 +107,16 @@ export default ({
       };
     }
   });
-const callConfigHooks = function (hooks) {
-  this.config[hooks] && this.config[hooks]();
+
+const hook = function (hookName, hook) {
+  return {
+    [hookName]() {
+      hook && hook.call(this);
+      this.config[hookName] && this.config[hookName]();
+    }
+  };
 };
+
 export const useLifeCircles = ({
   created,
   mounted,
@@ -139,24 +124,9 @@ export const useLifeCircles = ({
   beforeDestroy,
   destroyed
 } = {}) => ({
-  created() {
-    created && created.call(this);
-    callConfigHooks.call(this, 'created');
-  },
-  mounted() {
-    mounted && mounted.call(this);
-    callConfigHooks.call(this, 'mounted');
-  },
-  updated() {
-    updated && updated.call(this);
-    callConfigHooks.call(this, 'updated');
-  },
-  beforeDestroy() {
-    beforeDestroy && beforeDestroy.call(this);
-    callConfigHooks.call(this, 'beforeDestroy');
-  },
-  destroyed() {
-    destroyed && destroyed.call(this);
-    callConfigHooks.call(this, 'destroyed');
-  }
+  ...hook('created', created),
+  ...hook('mounted', mounted),
+  ...hook('updated', updated),
+  ...hook('beforeDestroy', beforeDestroy),
+  ...hook('destroyed', destroyed)
 });

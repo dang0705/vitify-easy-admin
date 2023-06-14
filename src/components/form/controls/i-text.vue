@@ -41,9 +41,7 @@
       };
     },
     ...useLifeCircles({
-      mounted() {
-        console.log(this.value);
-      }
+      mounted() {}
     })
   });
 </script>

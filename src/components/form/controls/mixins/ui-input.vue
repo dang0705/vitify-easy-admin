@@ -1,11 +1,5 @@
 <template>
-  <v-input
-    :id="id"
-    :ref="`${key}-input`"
-    hide-details
-    validate-on-blur
-    v-show="display"
-  >
+  <v-input :id="id" v-show="show" hide-details>
     <template #prepend>
       <v-icon
         style="width: 16px"
@@ -21,12 +15,12 @@
         v-text="`${config.label}：`"
       />
     </template>
-    <div class="tw-flex tw-w-full tw-flex-col">
+    <div class="tw-flex tw-w-full tw-flex-col tw-pt-4">
       <slot :name="`on-${key}`" />
       <component
         v-model="formData[config.key]"
         v-on="$listeners"
-        :show="display"
+        :show="show"
         :ref="getRef(config)"
         :is="getComponent(config.control)"
         :config="config"
@@ -44,34 +38,61 @@
   </v-input>
 </template>
 <script>
+  import { useRefs, useModel } from 'form/controls/composables';
+  import { helpers } from 'utils/helpers';
+
   export default {
     inheritAttrs: false,
+    ...useModel(),
+    data() {
+      return {
+        isShow: this.config.show ?? true
+      };
+    },
     computed: {
       getRefs() {
         return this.$refs;
+      },
+      show: {
+        get() {
+          const { formView, props } = this._setupProxy;
+          if (helpers.isBoolean(this.isShow)) return this.isShow ?? true;
+          return this.isShow(props.formData, useRefs(props, formView).value);
+        },
+        set(isShow) {
+          this.isShow = isShow;
+          this.resetValueOnHide(isShow);
+        }
+      }
+    },
+    watch: {
+      show(isShow) {
+        this.resetValueOnHide(isShow);
       }
     },
     methods: {
       getRef({ useRef, key, control }) {
         return useRef ? `${key}-${control}` : null;
+      },
+      resetValueOnHide(isShow) {
+        if (isShow) return;
+        const { value, defaultValue } = this._setupProxy;
+        value !== defaultValue && this.$emit('change', defaultValue);
       }
     }
   };
 </script>
 
 <script setup>
-  import { ref } from 'vue';
   import { themes } from 'definition/themes';
-  import { helpers } from 'utils/helpers';
   import {
     useProps,
     useValue,
     useDefaultValue,
     useRules,
-    useId
+    useId,
+    useRefs
   } from 'form/controls/composables';
-  import unitNumberString from 'utils/union-number-string';
-  import camel2Kebab from 'utils/camel-2-kebab';
 
   const formView = inject('formView', null);
   const formConfig = inject('formConfig', null);
@@ -84,66 +105,26 @@
   );
   const value = useValue({
     props,
-    value: props.config.value,
-    formData: props.formData,
     emit,
     formView
   });
   const rules = useRules(props).value;
   const id = useId(props);
   const key = computed(() => props.config.key);
-  const dynamicShow = computed(() => {
-    if (!key.value) return;
-    return (
-      props.formConfigs.find((config) => {
-        const { control: { configKey } = {} } = config;
-        return helpers.isArray(configKey)
-          ? configKey.includes(key.value)
-          : configKey === key.value;
-      }) ||
-      props.config.controlled ||
-      props.config.show
-    );
-  });
-  const display = computed(() => {
-    const { show } = props.config;
-    if (show === false) return show;
-    if (!dynamicShow.value) return true;
-    let isDisplay;
-    if (dynamicShow.value.control) {
-      let { control: { display } = {}, key } = dynamicShow.value;
-      const controlValue = props.formData[key];
-      helpers.isArray(display) &&
-        (display = display.map((item) => unitNumberString(item)));
-      isDisplay = helpers.isArray(display)
-        ? display.includes(unitNumberString(controlValue))
-        : unitNumberString(display) === unitNumberString(controlValue);
-    } else {
-      if (helpers.isFunction(show)) {
-        isDisplay = helpers.isFunction(show) && show(props.formData);
-      } else if (helpers.isObject(show)) {
-        const { display, by } = show;
-        if (!display || !by) return true;
-        let ref = formView.$refs[`input-${by}`];
-        let vm = helpers.isArray(ref) ? ref[0] : ref;
-        isDisplay = display(props.formData, vm);
-      }
-    }
-    return isDisplay;
-  });
+
+  /*  const isShow = ref(props.config.show ?? true);
+
+
   watch(
-    () => display.value,
+    () => show.value,
     (display) => {
       if (!display) {
         value.value !== defaultValue.value &&
           emit('change', defaultValue.value);
       }
     }
-  );
-  const getComponent = (controlName) =>
-    controlName.includes('-')
-      ? controlName
-      : camel2Kebab(controlName).substring(1);
+  );*/
+  const getComponent = (controlName) => controlName;
 </script>
 <style lang="postcss" scoped>
   .col {

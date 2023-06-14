@@ -20,6 +20,8 @@
   export default defineControl({
     name: 'select',
     components: { VSelect },
-    ...useLifeCircles
+    ...useLifeCircles({
+      mounted() {}
+    })
   });
 </script>

@@ -23,7 +23,7 @@
             in-dialog
             :action-api="actionApi"
             :action="action"
-            :module="model"
+            :module="module"
             :is-new="feedback ? !Object.keys(data).length : isNew"
             :default-params="defaultParams"
             :form-config="formConfigs"
@@ -65,8 +65,10 @@
   });
 
   const keyName = inject('keyName', null);
-  const model =
-    props.modelName || inject('model', null) || useModuleStore().currentModule;
+  const module = computed(
+    () =>
+      props.module || inject('module', null) || useModuleStore().currentModule
+  );
 
   let forms = ref(
     props.multiForms.length

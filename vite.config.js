@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import build from './vite.config/build';
 import resolve from './vite.config/alias';
 import plugins from './vite.config/plugins';
 import postcss from './vite.config/postcss';
@@ -7,6 +8,8 @@ import postcss from './vite.config/postcss';
 export default defineConfig(({ mode }) => {
   const _isDev_ = mode === 'development';
   return {
+    base: '/',
+    build,
     css: {
       postcss,
       devSourcemap: true,

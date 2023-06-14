@@ -1,4 +1,4 @@
-@import '_reset.pcss';
+@import 'reset.pcss';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

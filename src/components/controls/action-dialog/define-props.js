@@ -16,7 +16,7 @@ export default {
     type: Boolean,
     default: false
   },
-  modelName: {
+  module: {
     type: String,
     default: ''
   },

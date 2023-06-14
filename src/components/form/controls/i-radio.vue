@@ -1,5 +1,5 @@
 <template>
-  <v-radio-group v-model="value" row>
+  <v-radio-group v-model="value" row :rules="bind.rules">
     <v-radio
       v-for="(option, index) in options"
       :key="`${config.key}-radio-${index}`"

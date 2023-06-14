@@ -1,10 +1,10 @@
 import { helpers } from 'utils/helpers';
-import maybeFunctional from 'utils/maybe-functional';
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
 import email from '@/regexp/usage/email';
 import phone from '@/regexp/usage/phone';
+import maybeFunctional from 'utils/maybe-functional';
 
-export const useProps = () => ({
+const useProps = () => ({
   formConfigs: {
     type: Array,
     default: () => []
@@ -31,57 +31,59 @@ export const useProps = () => ({
   }
 });
 
-export const useDefaultValue = (value, formData) =>
+const useDefaultValue = (value, formData) =>
   computed(() => maybeFunctional({ data: value, params: [formData] }));
 
-const onValueChange = async (
-  value,
-  { config, formData, formConfigs },
-  refs = {}
-) => {
-  await nextTick();
+const useRefs = (props, formView) =>
+  computed(() => {
+    let refs = {};
+    if (props.config.useRef) {
+      const { form: { $children = [] } = {}, ...otherRefs } = formView.$refs;
+      const inputRefs = {};
+      for (let inputKey in otherRefs) {
+        inputRefs[inputKey] = otherRefs[inputKey][0];
+      }
+      refs = $children.reduce(
+        (prev, { getRefs }) =>
+          Object.assign({}, prev, getRefs, formView.$refs, inputRefs),
+        $children.find(({ getRefs } = {}) => getRefs)?.getRefs || {}
+      );
+    }
+    return refs;
+  });
+
+const onValueChange = (value, { config, formData, formConfigs }, refs = {}) =>
   config.change &&
-    helpers.isFunction(config.change) &&
-    config.change({ config, formConfigs, value, formData, refs });
-};
-export const useValue = ({ props, value, formData, emit, formView = null }) =>
+  helpers.isFunction(config.change) &&
+  config.change({ config, formConfigs, value, formData, refs });
+const useValue = ({ props, emit, formView = null }) =>
   computed({
     get() {
-      if (props.modelValue === null && !Object.keys(formData).length) return;
-      const key = props.config.key;
-      const manualValue =
-        props.modelValue ?? formData[key]?.value ?? formData[key];
-
+      const {
+        modelValue,
+        config: { key, value },
+        formData
+      } = props;
+      if (modelValue === null && !Object.keys(formData).length) return;
+      const manualValue = modelValue ?? formData[key]?.value ?? formData[key];
       return helpers.isFunction(manualValue)
-        ? manualValue(props.formData)
+        ? manualValue(formData)
         : manualValue ?? useDefaultValue(value, formData).value;
     },
     async set(value) {
       emit('change', value);
       await nextTick();
-      let refs = {};
-      if (props.config.useRef) {
-        const { $children } = formView.$refs.form;
-        refs = $children.reduce(
-          (prev, { getRefs }) => Object.assign({}, prev, getRefs),
-          $children.find(({ getRefs }) => getRefs).getRefs
-        );
-      }
-      onValueChange(value, props, refs);
+      onValueChange(value, props, useRefs(props, formView).value);
     }
   });
-export const useModel = (name) => ({
+const useModel = () => ({
   model: {
     prop: 'modelValue',
     event: 'change'
   }
 });
 
-const withOptionsComponents = ['select', 'checkbox', 'radio'];
-export const useOptions = (name, options) =>
-  withOptionsComponents.includes(name) ? { options } : {};
-
-export const useRules = ({ config }) =>
+const useRules = ({ config }) =>
   computed(() => {
     if (config.readonly) return [];
     const rules =
@@ -107,4 +109,17 @@ export const useRules = ({ config }) =>
     return rules;
   });
 
-export const useId = ({ config }) => config.key + '-' + config.control;
+const withOptionsComponents = ['select', 'checkbox', 'radio'];
+const useOptions = (name, options) =>
+  withOptionsComponents.includes(name) ? { options } : {};
+const useId = ({ config }) => config.key + '-' + config.control;
+export {
+  useId,
+  useRules,
+  useOptions,
+  useProps,
+  useModel,
+  useValue,
+  useDefaultValue,
+  useRefs
+};
