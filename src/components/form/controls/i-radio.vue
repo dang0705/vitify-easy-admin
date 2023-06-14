@@ -1,11 +1,16 @@
 <template>
-  <v-radio-group v-model="value" row :rules="bind.rules">
+  <v-radio-group
+    v-model="value"
+    row
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
+  >
     <v-radio
       v-for="(option, index) in options"
       :key="`${config.key}-radio-${index}`"
       :value="option.value"
-      :readonly="bind.readonly"
-      :disabled="bind.disabled"
       :label="option[config.itemText || 'label']"
     />
   </v-radio-group>

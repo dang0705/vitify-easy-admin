@@ -1,9 +1,11 @@
 <template>
   <v-text-field
     v-model="value"
-    v-bind="bind"
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
     :maxlength="config.max"
-    :rules="bind.rules"
     :placeholder="config.placeholder || ' '"
     :counter="config.max"
     :full-width="config.fullwidth"
@@ -12,11 +14,11 @@
   >
     <template v-for="(_, vuetifySlot) in vuetifySlots" #[vuetifySlot]>
       <slot
-        :name="bind[transferVuetifySlot(vuetifySlot)]"
+        :name="staticProps[transferVuetifySlot(vuetifySlot)]"
         v-bind="{ formData: config.formData, test: 'test-class' }"
       >
         <component
-          :class="bind[transferVuetifySlot(vuetifySlot)]"
+          :class="staticProps[transferVuetifySlot(vuetifySlot)]"
           :key="vuetifySlot"
           :form-data="config.formData"
           v-on="$listeners"

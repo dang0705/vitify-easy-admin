@@ -1,7 +1,10 @@
 <template>
   <v-select
     v-model="value"
-    v-bind="bind"
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
     :items="options"
     :item-text="config.itemText"
     :default-label="

@@ -24,21 +24,20 @@ export default ({
     watch: watchOption,
     ...otherOptions,
     setup(props, context) {
-      const { config, formData, show } = props;
       const { emit, attrs, slots } = context;
       const formView = inject('formView', null);
-      const options = computed(() => config.options);
-      const readonly = computed(() => config.readonly);
-      const disabled = computed(() => config.disabled);
-      const key = computed(() => config.key);
+      const options = computed(() => props.config.options);
+      const readonly = computed(() => props.config.readonly);
+      const disabled = computed(() => props.config.disabled);
+      const key = computed(() => props.config.key);
       const value = useValue({
         props,
         emit,
         formView
       });
-      helpers.isFunction(config.value) &&
-        Object.keys(formData).length &&
-        (value.value = config.value(formData));
+      helpers.isFunction(props.config.value) &&
+        Object.keys(props.formData).length &&
+        (value.value = props.config.value(props.formData));
 
       const overwriteVuetifySlotMapping = {
         left: 'prepend',
@@ -64,21 +63,22 @@ export default ({
       const transferVuetifySlot = (vuetifySlot) =>
         vuetifySlotMapping[vuetifySlot];
 
+      const rules = computed(() => (props.show ? useRules(props).value : []));
       const defineSlot = (position) => `${position}_${key.value}`;
       const setUpData = {
         formView,
-        bind: {
+        staticProps: {
           ...attrs,
           id: useId(props),
-          rules: show ? useRules(props).value : [],
           clearable: !readonly.value && attrs.clearable !== false,
-          readonly: readonly.value,
-          disabled: disabled.value,
           'left-inner': defineSlot('left-inner'),
           left: defineSlot('left'),
           'right-inner': defineSlot('right-inner'),
           right: defineSlot('right')
         },
+        readonly,
+        disabled,
+        rules,
         value,
         vuetifySlotMapping,
         vuetifySlots,
@@ -86,7 +86,7 @@ export default ({
         ...useOptions(name, options)
       };
       const slotBind = (position) => {
-        const slot = config.slot?.[position];
+        const slot = props.config.slot?.[position];
         if (!slot) return { bind: { is: 'span' } };
         const isText = helpers.isString(slot);
         return {

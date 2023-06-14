@@ -5,7 +5,7 @@ import phone from '@/regexp/usage/phone';
 import maybeFunctional from 'utils/maybe-functional';
 
 const useProps = () => ({
-  formConfigs: {
+  formConfig: {
     type: Array,
     default: () => []
   },
@@ -52,10 +52,10 @@ const useRefs = (props, formView) =>
     return refs;
   });
 
-const onValueChange = (value, { config, formData, formConfigs }, refs = {}) =>
+const onValueChange = (value, { config, formData, formConfig }, refs = {}) =>
   config.change &&
   helpers.isFunction(config.change) &&
-  config.change({ config, formConfigs, value, formData, refs });
+  config.change({ config, formConfig, value, formData, refs });
 const useValue = ({ props, emit, formView = null }) =>
   computed({
     get() {

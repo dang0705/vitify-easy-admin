@@ -1,5 +1,11 @@
 <template>
-  <v-input validate-on-blur :rules="bind.rules" :value="value">
+  <v-input
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
+    :value="value"
+  >
     <Editor :id="id" v-model="value" :init="editorInit" />
   </v-input>
 </template>

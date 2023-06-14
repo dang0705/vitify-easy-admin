@@ -27,4 +27,3 @@ registerMicroApps([
     activeRule: '/module-b'
   }
 ]);
-start();

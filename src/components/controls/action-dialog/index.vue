@@ -18,7 +18,7 @@
         <template v-for="(_, index) in forms">
           <form-view
             ref="formV"
-            v-if="formConfigs && formConfigs.length"
+            v-if="formConfig && formConfig.length"
             v-model="forms[index]"
             in-dialog
             :action-api="actionApi"
@@ -26,7 +26,7 @@
             :module="module"
             :is-new="feedback ? !Object.keys(data).length : isNew"
             :default-params="defaultParams"
-            :form-config="formConfigs"
+            :form-config="formConfig"
             @close-dialog="cancel"
           />
         </template>
@@ -81,7 +81,7 @@
     ...maybeFunctional({ data: props.params, params: [props.data] })
   }));
 
-  const formConfigs = computed(() =>
+  const formConfig = computed(() =>
     maybeFunctional({ data: props.ele, params: [props.data] })
   );
 

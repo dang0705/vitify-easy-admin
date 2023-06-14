@@ -5,7 +5,7 @@
         style="width: 16px"
         small
         color="red"
-        v-text="config.required || config.rules?.length ? 'mdi-asterisk' : ''"
+        v-text="config.required ? 'mdi-asterisk' : ''"
       />
     </template>
     <template #label>
@@ -16,24 +16,23 @@
       />
     </template>
     <div class="tw-flex tw-w-full tw-flex-col tw-pt-4">
-      <slot :name="`on-${key}`" />
+      <slot :name="`on-${config.key}`" />
       <component
         v-model="formData[config.key]"
         v-on="$listeners"
         :show="show"
         :ref="getRef(config)"
-        :is="getComponent(config.control)"
+        :is="config.control"
         :config="config"
-        :form-configs="formConfigs"
+        :form-config="formConfig"
         :form-data="formData"
         :data-source="formData"
-        @no-rules="noRules = true"
       >
         <template v-for="(_, name) in $scopedSlots" #[name]>
           <slot :name="name" />
         </template>
       </component>
-      <slot :name="`under-${key}`" />
+      <slot :name="`under-${config.key}`" />
     </div>
   </v-input>
 </template>
@@ -57,7 +56,10 @@
         get() {
           const { formView, props } = this._setupProxy;
           if (helpers.isBoolean(this.isShow)) return this.isShow ?? true;
-          return this.isShow(props.formData, useRefs(props, formView).value);
+          return (
+            helpers.isFunction(this.isShow) &&
+            this.isShow(props.formData, useRefs(props, formView).value)
+          );
         },
         set(isShow) {
           this.isShow = isShow;
@@ -88,43 +90,20 @@
   import {
     useProps,
     useValue,
-    useDefaultValue,
-    useRules,
     useId,
     useRefs
   } from 'form/controls/composables';
 
   const formView = inject('formView', null);
   const formConfig = inject('formConfig', null);
-  const noRules = ref(false);
   const props = defineProps(useProps());
   const emit = defineEmits(['change']);
-  const defaultValue = useDefaultValue(
-    props.config.value,
-    props.config.formData
-  );
   const value = useValue({
     props,
     emit,
     formView
   });
-  const rules = useRules(props).value;
   const id = useId(props);
-  const key = computed(() => props.config.key);
-
-  /*  const isShow = ref(props.config.show ?? true);
-
-
-  watch(
-    () => show.value,
-    (display) => {
-      if (!display) {
-        value.value !== defaultValue.value &&
-          emit('change', defaultValue.value);
-      }
-    }
-  );*/
-  const getComponent = (controlName) => controlName;
 </script>
 <style lang="postcss" scoped>
   .col {

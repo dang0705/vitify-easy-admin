@@ -1,7 +1,10 @@
 <template>
   <v-textarea
     v-model="value"
-    v-bind="bind"
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
     :placeholder="config.placeholder || ' '"
     :counter="config.max"
     :with-counter="!!config.max"

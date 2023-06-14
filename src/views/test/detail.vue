@@ -18,7 +18,7 @@
               value: 'bj'
             }
           ],
-          change({ config, formConfigs, value, formData }) {
+          change({ config, formConfig, value, formData }) {
             formData.text = '';
           }
         }"
@@ -70,7 +70,7 @@
           }
         },*/
         useRef: true,
-        change({ config, formConfigs, value, formData, refs }) {
+        change({ config, formConfig, value, formData, refs }) {
           refs['type-i-select'].config.options = [
             { label: '北京', value: 'bj' }
           ];
@@ -96,7 +96,7 @@
             value: 'sh'
           }
         ],
-        change({ config, formConfigs, value, formData, refs }) {
+        change({ config, formConfig, value, formData, refs }) {
           !value && (formData.slotType = null);
         }
       }
@@ -109,7 +109,7 @@
         allChecked: true,
         value: [],
         rules: [(value) => !!value?.length || '不得少于一项'],
-        change({ config, formConfigs, value, formData }) {
+        change({ config, formConfig, value, formData }) {
           formData.type = null;
         },
         options: [

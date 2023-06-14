@@ -204,12 +204,12 @@
         tableRowActionsComp.value?.actions.find(
           ({ type }) => type === 'detail'
         ) || {};
-      const formConfigs = ele || props.dialogDetailFormConfig;
+      const formConfig = ele || props.dialogDetailFormConfig;
 
       dialogAction.value = {
-        ele: formConfigs,
+        ele: formConfig,
         title: `创建${currentMenuName.value}`,
-        data: formView.value.initFormDataByConfig(formConfigs)
+        data: formView.value.initFormDataByConfig(formConfig)
       };
       showDialog.value = feedback.value = true;
       return;

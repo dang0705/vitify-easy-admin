@@ -1,5 +1,12 @@
 <template>
-  <v-input :rules="bind.rules" :value="value">
+  <v-input
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
+    :value="value"
+    validate-on-blur
+  >
     <v-menu
       ref="datePickerRef"
       v-model="datePicker"
@@ -15,7 +22,7 @@
           hint="点击选择日期"
           persistent-hint
           prepend-icon="mdi-calendar"
-          v-bind="{ ...attrs, ...bind }"
+          v-bind="{ ...attrs }"
           v-on="on"
           @blur="date = parseDate(dateFormatted)"
         />

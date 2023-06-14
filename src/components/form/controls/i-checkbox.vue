@@ -1,6 +1,9 @@
 <template>
   <v-input
-    :rules="bind.rules"
+    v-bind="staticProps"
+    :rules="rules"
+    :disabled="disabled"
+    :readonly="readonly"
     :value="value"
     :class="['tw-flex', 'tw-items-center', { 'tw-flex-col': config.vertical }]"
   >
@@ -16,8 +19,6 @@
       v-for="(option, index) in options"
       v-model="value"
       hide-details
-      :readonly="bind.readonly"
-      :disabled="bind.disabled"
       :key="`${config.key}-checkbox-${index}`"
       :value="option.value"
       :label="option.label"

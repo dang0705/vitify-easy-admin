@@ -24,10 +24,14 @@
             router
               ? {
                   to: { name: key || name },
-                  exactPath: maybeFunctional({
-                    data: exactPath,
-                    params: [key || menuName, name, title]
-                  })
+                  ...(exactPath
+                    ? {
+                        exactPath: maybeFunctional({
+                          data: exactPath,
+                          params: [key || menuName, name, title]
+                        })
+                      }
+                    : {})
                 }
               : {}
           "
@@ -95,7 +99,7 @@
     },
     exactPath: {
       type: [Boolean, Function],
-      default: false
+      default: null
     }
   });
 

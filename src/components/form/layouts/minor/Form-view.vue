@@ -240,9 +240,7 @@
   };
   const initFormDataByConfig = async (formConfig = formConfigCache.value) => {
     const values = {};
-    formConfig.forEach(({ key, value = null, show = true }, index, self) => {
-      key && (values[key] = value);
-    });
+    formConfig.forEach(({ key, value = null }) => key && (values[key] = value));
     emit('change', values);
   };
 

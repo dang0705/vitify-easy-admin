@@ -22,7 +22,7 @@
               value: 'bj'
             }
           ],
-          change({ config, formConfigs, value, formData, refs }) {
+          change({ config, formConfig, value, formData, refs }) {
             formData.text = '';
           }
         }"
@@ -52,13 +52,12 @@
         }
       },*/
         useRef: true,
-        change({ config, formConfigs, value, formData, refs }) {
-          console.log(refs);
-          // refs['type-input'].show = false;
-          // console.log((formConfigs[1].label = 'changed-label'));
+        change({ config, formConfig, value, formData, refs }) {
+          // console.log(refs);
+          refs['type-input'].show = false;
+          // console.log((formConfig[1].label = 'changed-label'));
         },
-        /*       show: ({ type }, refs) => {
-          console.log(refs['type-i-select']);
+        /*   show: ({ type }, refs) => {
           return type === 'sh';
         },*/
         created() {
@@ -94,7 +93,7 @@
         mounted() {
           console.log('mounted');
         },
-        change({ config, formConfigs, value, formData, refs }) {
+        change({ config, formConfig, value, formData, refs }) {
           // !value && (formData.slotType = null);
         }
       }
@@ -107,7 +106,7 @@
         allChecked: true,
         value: [],
         // rules: [(value) => !!value?.length || '不得少于一项'],
-        change({ config, formConfigs, value, formData }) {
+        change({ config, formConfig, value, formData }) {
           formData.type = null;
         },
         options: [
