@@ -1,1 +1,0 @@
-System.register(["./async-module-fd8bfeaa-legacy.js","./async-module-b81df90c-legacy.js","./async-module-8dd18fbb-legacy.js"],(function(n,e){"use strict";var t;return{setters:[function(n){t=n._},null,null],execute:function(){n("default",{name:"not-found",path:"*",component:function(){return t((function(){return e.import("./async-module-35e01661-legacy.js")}),void 0)}})}}}));
