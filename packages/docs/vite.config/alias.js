@@ -1,9 +1,9 @@
 import path from "node:path";
 const workspace = path.join(__dirname, "../");
-const vue2WorkSpace = path.join(__dirname, "../../../packages/vue-2");
+const vue2WorkSpace = path.join(__dirname, "../../../packages/vue-2/");
 const resolvePath = (dir) => path.join(workspace, dir);
 const resolveVue2Path = (dir) => path.join(vue2WorkSpace, dir);
-console.log(resolveVue2Path("src/configuration"));
+
 export default {
   resolve: {
     alias: {
@@ -16,11 +16,13 @@ export default {
       form: resolveVue2Path("src/components/form"),
       plugins: resolveVue2Path("src/plugins"),
       router: resolveVue2Path("src/router"),
+      regexp: resolveVue2Path("src/regexp"),
       store: resolveVue2Path("src/store"),
       styles: resolveVue2Path("src/styles"),
       utils: resolveVue2Path("src/utils"),
       views: resolveVue2Path("src/views"),
       mock: resolvePath("mock"),
     },
+    dedupe: ["vue", "vuetify"],
   },
 };

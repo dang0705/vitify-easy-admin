@@ -1,13 +1,14 @@
-const isBuildLocal = process.argv.includes('build-local');
+const isBuildLocal = process.argv.includes("build-local");
 export default {
+  outDir: "../../dist",
   rollupOptions: {
     output: {
       // compact: true,
       assetFileNames: ({ name }) => {
         const ext = name
-          .substring(name.lastIndexOf('.') + 1, name.length)
+          .substring(name.lastIndexOf(".") + 1, name.length)
           .toLowerCase();
-        let path = ext === 'css' ? ext : 'assets';
+        let path = ext === "css" ? ext : "assets";
         return `${path}/[name]-[hash].[ext]`;
       },
       entryFileNames: `main/[name]-[hash].js`,
@@ -15,14 +16,14 @@ export default {
         ? `[name]/[name]-[hash].js`
         : `async/async-module-[hash].js`,
       manualChunks(id) {
-        if (id.includes('node_modules')) {
+        if (id.includes("node_modules")) {
           return id
             .toString()
-            .split('node_modules/')[1]
-            .split('/')[0]
+            .split("node_modules/")[1]
+            .split("/")[0]
             .toString();
         }
-      }
-    }
-  }
+      },
+    },
+  },
 };

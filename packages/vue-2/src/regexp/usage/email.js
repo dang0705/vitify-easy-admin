@@ -1,2 +1,2 @@
-import email from '@/regexp/rules/email';
+import email from 'regexp/rules/email';
 export default (address) => email().test(address);

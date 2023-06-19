@@ -1,7 +1,7 @@
 import { helpers } from 'utils/helpers';
 import { computed } from 'vue';
-import email from '@/regexp/usage/email';
-import phone from '@/regexp/usage/phone';
+import email from 'regexp/usage/email';
+import phone from 'regexp/usage/phone';
 import maybeFunction from 'utils/maybe-function';
 
 const useProps = () => ({

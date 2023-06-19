@@ -15,11 +15,13 @@ export default {
       form: resolvePath('src/components/form'),
       plugins: resolvePath('src/plugins'),
       router: resolvePath('src/router'),
+      regexp: resolvePath('src/regexp'),
       store: resolvePath('src/store'),
       styles: resolvePath('src/styles'),
       utils: resolvePath('src/utils'),
       views: resolvePath('src/views'),
       mock: resolvePath('mock')
-    }
+    },
+    dedupe: ['vue', 'vuetify']
   }
 };

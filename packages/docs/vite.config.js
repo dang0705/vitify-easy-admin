@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
     define: {
       _isDev_,
     },
-    resolve: { ...resolve, dedupe: ["vue", "vuetify"] },
+    ...resolve,
     server: {
       host: "localhost",
       port: 8899,
