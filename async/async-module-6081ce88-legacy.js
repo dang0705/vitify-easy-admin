@@ -1,0 +1,1 @@
+System.register([],(function(e,t){"use strict";return{execute:function(){var t={};Object.defineProperty(t,"__esModule",{value:!0}),e("_",t.default=function(e){return e.replace(/\n/g,"").replace(/\s\s+/g," ")})}}}));
